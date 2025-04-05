@@ -1,7 +1,6 @@
 package ru.practicum.service;
 
 import lombok.AllArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import ru.practicum.HitDto;
 import ru.practicum.StatsDto;
