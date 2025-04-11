@@ -1,7 +1,6 @@
 package ru.practicum.request.service;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +22,6 @@ import ru.practicum.user.repository.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @AllArgsConstructor
 public class RequestServiceImpl implements RequestService {
@@ -33,8 +31,6 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public RequestDto addRequest(Long userId, Long eventId) {
-        log.info("Метод addRequest вызван с параметрами: userId = {}, eventId = {}", userId, eventId);
-
         validateEventId(eventId);
         ensureRequestDoesNotExist(userId, eventId);
 
@@ -46,13 +42,10 @@ public class RequestServiceImpl implements RequestService {
         Request request = RequestMapper.toRequest(event, user);
 
         if (canAutoConfirm(event)) {
-            log.debug("Автоматическое подтверждение запроса для события с id = {}", eventId);
             confirmRequestAndUpdateEvent(event, request);
         }
 
-        RequestDto result = RequestMapper.toRequestDto(requestRepository.save(request));
-        log.info("Запрос добавлен: {}", result);
-        return result;
+        return RequestMapper.toRequestDto(requestRepository.save(request));
     }
 
     @Override

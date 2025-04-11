@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS requests (
     event_id BIGINT,
     requester_id BIGINT,
     created TIMESTAMP,
+    status VARCHAR(255),
     FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE,
     FOREIGN KEY (requester_id) REFERENCES users (id) ON DELETE CASCADE
 );
