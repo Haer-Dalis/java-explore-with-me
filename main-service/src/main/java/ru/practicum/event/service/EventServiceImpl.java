@@ -64,14 +64,11 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto updateEvent(Long userId, Long eventId, UpdateEventDto updateEventDto) {
-        log.info("Вызван updateEvent с параметрами: userId={}, eventId={}, updateEventDto={}", userId, eventId, updateEventDto);
-
         checkExistUser(userId);
         Event event = getEventById(eventId);
 
         validateInitiator(userId, event);
         if (event.getState() == State.PUBLISHED) {
-            log.warn("Попытка изменить событие в статусе PUBLISHED");
             throw new ConflictException("События можно изменять в статусах PENDING или CANCELED");
         }
 
@@ -84,13 +81,13 @@ public class EventServiceImpl implements EventService {
                 : event.getCategory();
 
         Event updatedEvent = EventMapper.toUpdatedEvent(updateEventDto, category, event);
-        log.info("Событие с id={} обновлено", eventId);
         return EventMapper.toEventDto(eventRepository.save(updatedEvent));
     }
 
-
     @Override
     public EventDto getEventByUserIdAndEventId(Long userId, Long eventId) {
+        log.info("Вызван getEventByUserIdAndEventId с параметрами: userId={}, eventId={}", userId, eventId);
+
         checkExistUser(userId);
         Event event = getEventById(eventId);
         validateInitiator(userId, event);
