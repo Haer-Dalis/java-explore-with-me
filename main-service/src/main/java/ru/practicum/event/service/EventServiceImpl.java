@@ -45,8 +45,6 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto addEvent(Long userId, NewEventDto newEventDto) {
-        log.info("Вызван addEvent с параметрами: userId={}, newEventDto={}", userId, newEventDto);
-
         checkDateTime(newEventDto.getEventDate());
         User user = getUserById(userId);
         Category category = getCategoryById(newEventDto.getCategory());
@@ -57,10 +55,8 @@ public class EventServiceImpl implements EventService {
 
         try {
             event = eventRepository.save(event);
-            log.info("Событие с id={} успешно добавлено", event.getId());
         } catch (DataIntegrityViolationException exception) {
-            log.error("Ошибка сохранения события: {}", exception.getMessage());
-            throw new ValidationException("Категория не может ничего не содержать");
+            throw new ValidationException("Категория не может ничего не содаржать");
         }
 
         return EventMapper.toEventDto(event);
@@ -68,11 +64,14 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto updateEvent(Long userId, Long eventId, UpdateEventDto updateEventDto) {
+        log.info("Вызван updateEvent с параметрами: userId={}, eventId={}, updateEventDto={}", userId, eventId, updateEventDto);
+
         checkExistUser(userId);
         Event event = getEventById(eventId);
 
         validateInitiator(userId, event);
         if (event.getState() == State.PUBLISHED) {
+            log.warn("Попытка изменить событие в статусе PUBLISHED");
             throw new ConflictException("События можно изменять в статусах PENDING или CANCELED");
         }
 
@@ -85,8 +84,10 @@ public class EventServiceImpl implements EventService {
                 : event.getCategory();
 
         Event updatedEvent = EventMapper.toUpdatedEvent(updateEventDto, category, event);
+        log.info("Событие с id={} обновлено", eventId);
         return EventMapper.toEventDto(eventRepository.save(updatedEvent));
     }
+
 
     @Override
     public EventDto getEventByUserIdAndEventId(Long userId, Long eventId) {
