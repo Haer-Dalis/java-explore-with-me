@@ -3,7 +3,6 @@ package ru.practicum.event.service;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +30,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
 @ComponentScan
 @Service
 @RequiredArgsConstructor
@@ -79,16 +77,10 @@ public class PublicEventServiceImpl implements PublicEventService {
 
     @Override
     public EventDto getEventById(Long id, HttpServletRequest request) {
-        log.info("Method getEventById called with id = {}", id);
-
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Event with id = {} not found", id);
-                    return new NotFoundException("Событие с id = " + id + " не было найдено");
-                });
+                .orElseThrow(() -> new NotFoundException("Событие с id = " + id + " не было найдено"));
 
         if (!event.getState().equals(State.PUBLISHED)) {
-            log.error("Event with id = {} is not published", id);
             throw new NotFoundException("Можно смотреть только опубликованные события");
         }
 
@@ -96,22 +88,14 @@ public class PublicEventServiceImpl implements PublicEventService {
                 .ofPattern(Constants.DATE_TIME_PATTERN));
         String end = event.getEventDate().withNano(0).format(DateTimeFormatter
                 .ofPattern(Constants.DATE_TIME_PATTERN));
-        log.debug("Event start: {}, end: {}", start, end);
-
         List<StatsDto> viewStatsDtoList = statsClient.getStatsByDateAndUris(start, end,
                 List.of(request.getRequestURI()), true);
 
         if (!viewStatsDtoList.isEmpty()) {
             event.setViews(viewStatsDtoList.get(0).getHits());
-            log.debug("Updated event views: {}", event.getViews());
         }
-
         statsClient.createHit(createHitDto(request));
-        log.debug("Hit for stats created");
-
-        EventDto eventDto = EventMapper.toEventDto(event);
-        log.info("Returning event with id = {}", id);
-        return eventDto;
+        return EventMapper.toEventDto(event);
     }
 
     @Transactional
