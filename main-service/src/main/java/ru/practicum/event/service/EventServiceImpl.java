@@ -103,21 +103,20 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<RequestDto> getRequestsByCurrentUserAndEventId(Long ownerId, Long eventId) {
-        log.info("Вызван getRequestsByCurrentUserAndEventId с параметрами: ownerId={}, eventId={}", ownerId, eventId);
-
         checkExistUser(ownerId);
         Event event = getEventById(eventId);
         validateInitiator(ownerId, event);
 
-        List<Request> requests = requestRepository.findRequestsByEventId(eventId, Sort.by(Sort.Direction.DESC, "created"));
-        log.info("Найдено запросов для события с id={}: {}", eventId, requests.size());
+        List<Request> requests = requestRepository.findRequestsByEventId(eventId,
+                Sort.by(Sort.Direction.DESC, "created"));
 
         return mapToDtoList(requests);
     }
 
     @Override
-    public ResultRequestStatusDto changeRequestByCurrentUserId(Long ownerId, Long eventId,
-                                                               EventRequestStatus eventRequestStatus) {
+    public ResultRequestStatusDto changeRequestByCurrentUserId(Long ownerId, Long eventId, EventRequestStatus eventRequestStatus) {
+        log.info("Вызван changeRequestByCurrentUserId с параметрами: ownerId={}, eventId={}, eventRequestStatus={}", ownerId, eventId, eventRequestStatus);
+
         checkExistUser(ownerId);
         Event event = getEventById(eventId);
         validateInitiator(ownerId, event);
@@ -129,11 +128,12 @@ public class EventServiceImpl implements EventService {
         for (Request request : requests) {
             validatePendingRequest(request);
             if (!request.getEvent().getId().equals(eventId)) {
-                throw new ConflictException("Запрос с id " + request.getId() +
-                        " никак не связан с событием id " + eventId);
+                log.warn("Запрос с id={} не связан с событием с id={}", request.getId(), eventId);
+                throw new ConflictException("Запрос с id " + request.getId() + " никак не связан с событием id " + eventId);
             }
 
             if (event.getParticipantLimit() != 0 && event.getConfirmedRequests() >= event.getParticipantLimit()) {
+                log.warn("Лимит участников для события с id={} достигнут", eventId);
                 throw new ConflictException("Нельзя делать запросов больше, чем лимит");
             }
 
@@ -158,6 +158,7 @@ public class EventServiceImpl implements EventService {
                     rejected.add(request);
                     break;
                 default:
+                    log.error("Ошибка статуса: {}", eventRequestStatus.getStatus());
                     throw new ConflictException("Ошибка статуса " + eventRequestStatus.getStatus());
             }
         }
