@@ -50,13 +50,37 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public RequestDto cancelRequest(Long userId, Long requestId) {
-        getUserById(userId);
+        System.out.println("Отмена запроса:");
+        System.out.println("userId: " + userId);
+        System.out.println("requestId: " + requestId);
+
+        if (userId == null || requestId == null) {
+            throw new ValidationException("userId и requestId не могут быть null");
+        }
+
+        User user = getUserById(userId);
+        System.out.println("Найден пользователь: " + user);
 
         Request request = getRequestById(requestId);
-        validateCancelPermission(userId, request);
+        System.out.println("Найден запрос: " + request);
+        System.out.println("Статус запроса: " + request.getStatus());
+        System.out.println("Автор запроса: " + request.getRequester());
+
+        if (!userId.equals(request.getRequester().getId())) {
+            System.out.println("Ошибка: userId не совпадает с автором запроса");
+            throw new ValidationException("Попытка несанкционированного доступа");
+        }
+
+        if (request.getStatus() == Status.CANCELED) {
+            System.out.println("Ошибка: запрос уже отменён");
+            throw new ValidationException("Запрос уже отменён");
+        }
 
         request.setStatus(Status.CANCELED);
-        return RequestMapper.toRequestDto(requestRepository.save(request));
+        Request savedRequest = requestRepository.save(request);
+        System.out.println("Новый статус запроса: " + savedRequest.getStatus());
+
+        return RequestMapper.toRequestDto(savedRequest);
     }
 
     @Override
