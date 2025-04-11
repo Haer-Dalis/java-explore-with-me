@@ -31,44 +31,21 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public RequestDto addRequest(Long userId, Long eventId) {
-        System.out.println("Создание запроса:");
-        System.out.println("userId: " + userId);
-        System.out.println("eventId: " + eventId);
-
-        if (userId == null || eventId == null) {
-            throw new ValidationException("userId и eventId не могут быть null");
-        }
-
         validateEventId(eventId);
         ensureRequestDoesNotExist(userId, eventId);
 
         User user = getUserById(userId);
-        System.out.println("Пользователь найден: " + user);
-
         Event event = getEventById(eventId);
-        System.out.println("Событие найдено: " + event);
-        System.out.println("Состояние события: " + event.getState());
-        System.out.println("Инициатор события: " + event.getInitiator().getId());
-        System.out.println("Подтверждённых запросов: " + event.getConfirmedRequests());
-        System.out.println("Лимит участников: " + event.getParticipantLimit());
-        System.out.println("Модерация запроса: " + event.getRequestModeration());
 
         validateRequestConditions(userId, event);
 
         Request request = RequestMapper.toRequest(event, user);
-        System.out.println("Создан объект запроса: " + request);
 
         if (canAutoConfirm(event)) {
-            System.out.println("Запрос можно подтвердить автоматически");
             confirmRequestAndUpdateEvent(event, request);
-        } else {
-            System.out.println("Запрос будет в ожидании подтверждения");
         }
 
-        Request savedRequest = requestRepository.save(request);
-        System.out.println("Запрос сохранён: " + savedRequest);
-
-        return RequestMapper.toRequestDto(savedRequest);
+        return RequestMapper.toRequestDto(requestRepository.save(request));
     }
 
     @Override
@@ -84,10 +61,22 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<RequestDto> getRequestDtosByUserId(Long userId) {
-        getUserById(userId);
+        System.out.println("Получение запросов пользователя:");
+        System.out.println("userId: " + userId);
 
-        return requestRepository.findAllByRequesterId(userId, Sort.by(Sort.Direction.DESC, "created"))
-                .stream()
+        if (userId == null) {
+            throw new ValidationException("userId не может быть null");
+        }
+
+        User user = getUserById(userId);
+        System.out.println("Пользователь найден: " + user);
+
+        List<Request> requests = requestRepository.findAllByRequesterId(userId, Sort.by(Sort.Direction.DESC, "created"));
+        System.out.println("Найдено запросов: " + requests.size());
+
+        requests.forEach(r -> System.out.println("Запрос: " + r));
+
+        return requests.stream()
                 .map(RequestMapper::toRequestDto)
                 .collect(Collectors.toList());
     }
