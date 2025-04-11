@@ -2,6 +2,7 @@ package ru.practicum.request.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import ru.practicum.event.model.Event;
 import ru.practicum.request.dto.Status;
 import ru.practicum.user.model.User;
