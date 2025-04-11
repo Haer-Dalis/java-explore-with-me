@@ -180,14 +180,12 @@ public class EventServiceImpl implements EventService {
 
     private void validateInitiator(Long userId, Event event) {
         if (!event.getInitiator().getId().equals(userId)) {
-            log.warn("Попытка несанкционированного доступа для события с id={} от пользователя с id={}", event.getId(), userId);
             throw new ConflictException("Попытка несанкционированного доступа");
         }
     }
 
     private void validatePendingRequest(Request request) {
         if (request.getStatus() != Status.PENDING) {
-            log.warn("Запрос с id={} не в статусе PENDING", request.getId());
             throw new ConflictException("Статус можно менять только в состоянии ожидания");
         }
     }
