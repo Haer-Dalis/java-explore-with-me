@@ -1,7 +1,6 @@
 package ru.practicum.event.service;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Slf4j
 @Service
 @AllArgsConstructor
 public class AdminEventServiceImpl implements AdminEventService {
@@ -90,25 +88,19 @@ public class AdminEventServiceImpl implements AdminEventService {
 
     private void validateDateRange(LocalDateTime start, LocalDateTime end) {
         if (!end.isAfter(start)) {
-            log.warn("Неверный диапазон дат: start={}, end={}", start, end);
             throw new ConflictException("Даты начала и окончания неверны");
         }
     }
 
     private void validateEventDate(LocalDateTime eventDate) {
         if (eventDate.isBefore(LocalDateTime.now().plusHours(1))) {
-            log.warn("Дата события слишком близко к текущему времени: {}", eventDate);
             throw new ConflictException("Дата начала события должна быть не ранее чем за час от текущего времени");
         }
     }
 
     private Category resolveCategory(Long categoryId, Category currentCategory) {
         if (categoryId == null) return currentCategory;
-
         return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> {
-                    log.warn("Категория с id={} не найдена", categoryId);
-                    return new NotFoundException("Категория с id " + categoryId + " не найдена");
-                });
+                .orElseThrow(() -> new NotFoundException("Категория с id " + categoryId + " не найдена"));
     }
 }

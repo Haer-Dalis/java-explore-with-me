@@ -1,6 +1,7 @@
 package ru.practicum.event.service;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class EventServiceImpl implements EventService {
@@ -43,6 +45,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto addEvent(Long userId, NewEventDto newEventDto) {
+        log.info("Вызван addEvent с параметрами: userId={}, newEventDto={}", userId, newEventDto);
+
         checkDateTime(newEventDto.getEventDate());
         User user = getUserById(userId);
         Category category = getCategoryById(newEventDto.getCategory());
@@ -53,8 +57,10 @@ public class EventServiceImpl implements EventService {
 
         try {
             event = eventRepository.save(event);
+            log.info("Событие с id={} успешно добавлено", event.getId());
         } catch (DataIntegrityViolationException exception) {
-            throw new ValidationException("Категория не может ничего не содаржать");
+            log.error("Ошибка сохранения события: {}", exception.getMessage());
+            throw new ValidationException("Категория не может ничего не содержать");
         }
 
         return EventMapper.toEventDto(event);
