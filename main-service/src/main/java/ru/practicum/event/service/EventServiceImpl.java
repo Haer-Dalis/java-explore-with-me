@@ -45,21 +45,36 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto addEvent(Long userId, NewEventDto newEventDto) {
+        log.info("Попытка добавить новое событие. userId={}, newEventDto={}", userId, newEventDto);
+
         checkDateTime(newEventDto.getEventDate());
+        log.debug("Дата события прошла проверку: {}", newEventDto.getEventDate());
+
         User user = getUserById(userId);
+        log.debug("Получен пользователь: {}", user);
+
         Category category = getCategoryById(newEventDto.getCategory());
+        log.debug("Получена категория: {}", category);
+
         Location location = locationRepository.save(LocationMapper.toLocation(newEventDto.getLocation()));
+        log.debug("Сохранена локация: {}", location);
 
         Event event = EventMapper.toEvent(user, category, newEventDto, location);
         event.setState(State.PENDING);
+        log.debug("Создано событие: {}", event);
 
         try {
             event = eventRepository.save(event);
+            log.info("Событие успешно сохранено в БД: {}", event);
         } catch (DataIntegrityViolationException exception) {
-            throw new ValidationException("Категория не может ничего не содаржать");
+            log.error("Ошибка при сохранении события: {}", exception.getMessage(), exception);
+            throw new ValidationException("Категория не может ничего не содержать");
         }
 
-        return EventMapper.toEventDto(event);
+        EventDto eventDto = EventMapper.toEventDto(event);
+        log.info("Результат добавления события: {}", eventDto);
+
+        return eventDto;
     }
 
     @Override
