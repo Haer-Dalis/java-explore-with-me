@@ -85,31 +85,30 @@ public class AdminEventServiceImpl implements AdminEventService {
 
     private LocalDateTime parseDate(String dateStr) {
         if (dateStr == null) return null;
-        try {
-            LocalDateTime parsed = LocalDateTime.parse(URLDecoder.decode(dateStr, StandardCharsets.UTF_8), Constants.DATE_TIME_FORMATTER);
-            log.debug("Дата распарсена успешно: {}", parsed);
-            return parsed;
-        } catch (Exception e) {
-            log.error("Ошибка при парсинге даты: {}", dateStr, e);
-            throw new RuntimeException("Невозможно распарсить дату: " + dateStr);
-        }
+        return LocalDateTime.parse(URLDecoder.decode(dateStr, StandardCharsets.UTF_8), Constants.DATE_TIME_FORMATTER);
     }
 
     private void validateDateRange(LocalDateTime start, LocalDateTime end) {
         if (!end.isAfter(start)) {
+            log.warn("Неверный диапазон дат: start={}, end={}", start, end);
             throw new ConflictException("Даты начала и окончания неверны");
         }
     }
 
     private void validateEventDate(LocalDateTime eventDate) {
         if (eventDate.isBefore(LocalDateTime.now().plusHours(1))) {
+            log.warn("Дата события слишком близко к текущему времени: {}", eventDate);
             throw new ConflictException("Дата начала события должна быть не ранее чем за час от текущего времени");
         }
     }
 
     private Category resolveCategory(Long categoryId, Category currentCategory) {
         if (categoryId == null) return currentCategory;
+
         return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException("Категория с id " + categoryId + " не найдена"));
+                .orElseThrow(() -> {
+                    log.warn("Категория с id={} не найдена", categoryId);
+                    return new NotFoundException("Категория с id " + categoryId + " не найдена");
+                });
     }
 }
