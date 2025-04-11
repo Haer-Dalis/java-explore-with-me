@@ -61,22 +61,10 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<RequestDto> getRequestDtosByUserId(Long userId) {
-        System.out.println("Получение запросов пользователя:");
-        System.out.println("userId: " + userId);
+        getUserById(userId);
 
-        if (userId == null) {
-            throw new ValidationException("userId не может быть null");
-        }
-
-        User user = getUserById(userId);
-        System.out.println("Пользователь найден: " + user);
-
-        List<Request> requests = requestRepository.findAllByRequesterId(userId, Sort.by(Sort.Direction.DESC, "created"));
-        System.out.println("Найдено запросов: " + requests.size());
-
-        requests.forEach(r -> System.out.println("Запрос: " + r));
-
-        return requests.stream()
+        return requestRepository.findAllByRequesterId(userId, Sort.by(Sort.Direction.DESC, "created"))
+                .stream()
                 .map(RequestMapper::toRequestDto)
                 .collect(Collectors.toList());
     }

@@ -1,6 +1,7 @@
 package ru.practicum.event.service;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class AdminEventServiceImpl implements AdminEventService {
@@ -34,6 +36,9 @@ public class AdminEventServiceImpl implements AdminEventService {
     @Override
     public List<EventDto> getEvents(List<Long> users, List<State> states, List<Long> categories,
                                     String rangeStart, String rangeEnd, Integer from, Integer size) {
+        log.info("Вызван getEvents с параметрами: users={}, states={}, categories={}, rangeStart={}, rangeEnd={}, from={}, size={}",
+                users, states, categories, rangeStart, rangeEnd, from, size);
+
         Pageable pageable = PageRequest.of(from > 0 ? from / size : 0, size);
         LocalDateTime start = parseDate(rangeStart);
         LocalDateTime end = parseDate(rangeEnd);
@@ -43,16 +48,32 @@ public class AdminEventServiceImpl implements AdminEventService {
         }
 
         List<Event> events = switch ((start != null ? 1 : 0) + (end != null ? 2 : 0)) {
-            case 3 -> eventRepository.findAllEventsByFilterAndPeriod(users, states, categories, start, end, pageable);
-            case 1 -> eventRepository.findAllEventsByFilterAndRangeStart(users, states, categories, start, pageable);
-            case 2 -> eventRepository.findAllEventsByFilterAndRangeEnd(users, states, categories, end, pageable);
-            default -> eventRepository.findAllByParams(users, states, categories, pageable);
+            case 3 -> {
+                log.debug("Фильтрация по обоим датам");
+                yield eventRepository.findAllEventsByFilterAndPeriod(users, states, categories, start, end, pageable);
+            }
+            case 1 -> {
+                log.debug("Фильтрация по rangeStart");
+                yield eventRepository.findAllEventsByFilterAndRangeStart(users, states, categories, start, pageable);
+            }
+            case 2 -> {
+                log.debug("Фильтрация по rangeEnd");
+                yield eventRepository.findAllEventsByFilterAndRangeEnd(users, states, categories, end, pageable);
+            }
+            default -> {
+                log.debug("Фильтрация без даты");
+                yield eventRepository.findAllByParams(users, states, categories, pageable);
+            }
         };
 
-        return events.stream()
+        List<EventDto> eventDtos = events.stream()
                 .map(EventMapper::toEventDto)
                 .toList();
+
+        log.info("Найдено событий: {}", eventDtos.size());
+        return eventDtos;
     }
+
 
     @Override
     public EventDto updateEventAdmin(Long eventId, UpdateEventDto updateEventDto) {
