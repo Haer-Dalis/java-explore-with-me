@@ -58,16 +58,10 @@ public class AdminEventServiceImpl implements AdminEventService {
 
     @Override
     public EventDto updateEventAdmin(Long eventId, UpdateEventDto updateEventDto) {
-        log.info("Вызван updateEventAdmin с eventId={}, updateEventDto={}", eventId, updateEventDto);
-
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> {
-                    log.warn("Событие с id={} не найдено", eventId);
-                    return new NotFoundException("Событие с id = " + eventId + " не обнаружено");
-                });
+                .orElseThrow(() -> new NotFoundException("Событие с id = " + eventId + " не обнаружено"));
 
         if (!event.getState().equals(State.PENDING)) {
-            log.warn("Попытка редактировать событие не в состоянии PENDING. Состояние: {}", event.getState());
             throw new ConflictException("Событие должно быть в ином состоянии");
         }
 
@@ -78,7 +72,6 @@ public class AdminEventServiceImpl implements AdminEventService {
         if (updateEventDto.getLocation() != null) {
             Location location = updateEventDto.getLocation();
             if (location.getId() == null) {
-                log.debug("Сохранение новой локации: {}", location);
                 location = locationRepository.save(location);
             }
             event.setLocation(location);
@@ -87,13 +80,19 @@ public class AdminEventServiceImpl implements AdminEventService {
         Category category = resolveCategory(updateEventDto.getCategory(), event.getCategory());
         event = eventRepository.save(EventMapper.toUpdatedEvent(updateEventDto, category, event));
 
-        log.info("Событие с id={} обновлено", eventId);
         return EventMapper.toEventDto(event);
     }
 
     private LocalDateTime parseDate(String dateStr) {
         if (dateStr == null) return null;
-        return LocalDateTime.parse(URLDecoder.decode(dateStr, StandardCharsets.UTF_8), Constants.DATE_TIME_FORMATTER);
+        try {
+            LocalDateTime parsed = LocalDateTime.parse(URLDecoder.decode(dateStr, StandardCharsets.UTF_8), Constants.DATE_TIME_FORMATTER);
+            log.debug("Дата распарсена успешно: {}", parsed);
+            return parsed;
+        } catch (Exception e) {
+            log.error("Ошибка при парсинге даты: {}", dateStr, e);
+            throw new RuntimeException("Невозможно распарсить дату: " + dateStr);
+        }
     }
 
     private void validateDateRange(LocalDateTime start, LocalDateTime end) {
