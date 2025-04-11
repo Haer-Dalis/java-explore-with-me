@@ -36,9 +36,6 @@ public class AdminEventServiceImpl implements AdminEventService {
     @Override
     public List<EventDto> getEvents(List<Long> users, List<State> states, List<Long> categories,
                                     String rangeStart, String rangeEnd, Integer from, Integer size) {
-        log.info("Вызван getEvents с параметрами: users={}, states={}, categories={}, rangeStart={}, rangeEnd={}, from={}, size={}",
-                users, states, categories, rangeStart, rangeEnd, from, size);
-
         Pageable pageable = PageRequest.of(from > 0 ? from / size : 0, size);
         LocalDateTime start = parseDate(rangeStart);
         LocalDateTime end = parseDate(rangeEnd);
@@ -48,39 +45,29 @@ public class AdminEventServiceImpl implements AdminEventService {
         }
 
         List<Event> events = switch ((start != null ? 1 : 0) + (end != null ? 2 : 0)) {
-            case 3 -> {
-                log.debug("Фильтрация по обоим датам");
-                yield eventRepository.findAllEventsByFilterAndPeriod(users, states, categories, start, end, pageable);
-            }
-            case 1 -> {
-                log.debug("Фильтрация по rangeStart");
-                yield eventRepository.findAllEventsByFilterAndRangeStart(users, states, categories, start, pageable);
-            }
-            case 2 -> {
-                log.debug("Фильтрация по rangeEnd");
-                yield eventRepository.findAllEventsByFilterAndRangeEnd(users, states, categories, end, pageable);
-            }
-            default -> {
-                log.debug("Фильтрация без даты");
-                yield eventRepository.findAllByParams(users, states, categories, pageable);
-            }
+            case 3 -> eventRepository.findAllEventsByFilterAndPeriod(users, states, categories, start, end, pageable);
+            case 1 -> eventRepository.findAllEventsByFilterAndRangeStart(users, states, categories, start, pageable);
+            case 2 -> eventRepository.findAllEventsByFilterAndRangeEnd(users, states, categories, end, pageable);
+            default -> eventRepository.findAllByParams(users, states, categories, pageable);
         };
 
-        List<EventDto> eventDtos = events.stream()
+        return events.stream()
                 .map(EventMapper::toEventDto)
                 .toList();
-
-        log.info("Найдено событий: {}", eventDtos.size());
-        return eventDtos;
     }
-
 
     @Override
     public EventDto updateEventAdmin(Long eventId, UpdateEventDto updateEventDto) {
+        log.info("Вызван updateEventAdmin с eventId={}, updateEventDto={}", eventId, updateEventDto);
+
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Событие с id = " + eventId + " не обнаружено"));
+                .orElseThrow(() -> {
+                    log.warn("Событие с id={} не найдено", eventId);
+                    return new NotFoundException("Событие с id = " + eventId + " не обнаружено");
+                });
 
         if (!event.getState().equals(State.PENDING)) {
+            log.warn("Попытка редактировать событие не в состоянии PENDING. Состояние: {}", event.getState());
             throw new ConflictException("Событие должно быть в ином состоянии");
         }
 
@@ -91,6 +78,7 @@ public class AdminEventServiceImpl implements AdminEventService {
         if (updateEventDto.getLocation() != null) {
             Location location = updateEventDto.getLocation();
             if (location.getId() == null) {
+                log.debug("Сохранение новой локации: {}", location);
                 location = locationRepository.save(location);
             }
             event.setLocation(location);
@@ -99,6 +87,7 @@ public class AdminEventServiceImpl implements AdminEventService {
         Category category = resolveCategory(updateEventDto.getCategory(), event.getCategory());
         event = eventRepository.save(EventMapper.toUpdatedEvent(updateEventDto, category, event));
 
+        log.info("Событие с id={} обновлено", eventId);
         return EventMapper.toEventDto(event);
     }
 
