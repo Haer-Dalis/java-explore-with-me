@@ -43,19 +43,13 @@ public class PublicEventServiceImpl implements PublicEventService {
     public List<EventShortDto> getEvents(String text, List<Long> categories, Boolean paid, String rangeStart,
                                          String rangeEnd, Boolean onlyAvailable, String sort, Integer from,
                                          Integer size, HttpServletRequest request) {
-        log.info("getEvents called with parameters: text={}, categories={}, paid={}, rangeStart={}, rangeEnd={}, onlyAvailable={}, sort={}, from={}, size={}",
-                text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
-
         Pageable pageable;
         if (sort != null) {
             String sortField = sort.equals(SortType.EVENT_DATE.name()) ? "eventDate" : "views";
             pageable = PageRequest.of(from > 0 ? from / size : 0, size, Sort.by(sortField).descending());
-            log.info("Sorting by: {}", sortField);
         } else {
             pageable = PageRequest.of(from > 0 ? from / size : 0, size);
-            log.info("No sorting applied.");
         }
-
         LocalDateTime startDate = rangeStart != null
                 ? LocalDateTime.parse(URLDecoder.decode(rangeStart, StandardCharsets.UTF_8),
                 Constants.DATE_TIME_FORMATTER)
@@ -65,30 +59,19 @@ public class PublicEventServiceImpl implements PublicEventService {
             endDate = LocalDateTime.parse(URLDecoder.decode(rangeEnd, StandardCharsets.UTF_8),
                     Constants.DATE_TIME_FORMATTER);
         }
-
-        log.info("Start date: {}", startDate);
-        if (endDate != null) {
-            log.info("End date: {}", endDate);
-            if (endDate.isBefore(startDate) || endDate.equals(startDate)) {
-                log.error("Invalid date range: startDate={}, endDate={}", startDate, endDate);
-                throw new ValidationException("Даты не могут быть равны или дата окончания не может быть раньше даты начала");
-            }
-        }
-
         List<Event> events;
         if (endDate != null) {
+            if (endDate.isBefore(startDate) || endDate.equals(startDate)) {
+                throw new ValidationException("Даты не могут быть равны или дата окончания не может быть раньше даты начала");
+            }
             events = eventRepository.findAllPublishedEventsByFilterAndPeriod(text, categories, paid, startDate, endDate,
                     onlyAvailable, pageable);
-            log.info("Fetched events with range filter.");
         } else {
             events = eventRepository.findAllPublishedEventsByFilterAndRangeStart(text, categories, paid, startDate,
                     onlyAvailable, pageable);
-            log.info("Fetched events with start range filter.");
         }
 
         statsClient.createHit(createHitDto(request));
-        log.info("Hit statistics sent for getEvents.");
-
         return events.stream()
                 .map(EventMapper::toEventShortDto)
                 .collect(Collectors.toList());
@@ -96,10 +79,16 @@ public class PublicEventServiceImpl implements PublicEventService {
 
     @Override
     public EventDto getEventById(Long id, HttpServletRequest request) {
+        log.info("Method getEventById called with id = {}", id);
+
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Событие с id = " + id + " не было найдено"));
+                .orElseThrow(() -> {
+                    log.error("Event with id = {} not found", id);
+                    return new NotFoundException("Событие с id = " + id + " не было найдено");
+                });
 
         if (!event.getState().equals(State.PUBLISHED)) {
+            log.error("Event with id = {} is not published", id);
             throw new NotFoundException("Можно смотреть только опубликованные события");
         }
 
@@ -107,14 +96,22 @@ public class PublicEventServiceImpl implements PublicEventService {
                 .ofPattern(Constants.DATE_TIME_PATTERN));
         String end = event.getEventDate().withNano(0).format(DateTimeFormatter
                 .ofPattern(Constants.DATE_TIME_PATTERN));
+        log.debug("Event start: {}, end: {}", start, end);
+
         List<StatsDto> viewStatsDtoList = statsClient.getStatsByDateAndUris(start, end,
                 List.of(request.getRequestURI()), true);
 
         if (!viewStatsDtoList.isEmpty()) {
             event.setViews(viewStatsDtoList.get(0).getHits());
+            log.debug("Updated event views: {}", event.getViews());
         }
+
         statsClient.createHit(createHitDto(request));
-        return EventMapper.toEventDto(event);
+        log.debug("Hit for stats created");
+
+        EventDto eventDto = EventMapper.toEventDto(event);
+        log.info("Returning event with id = {}", id);
+        return eventDto;
     }
 
     @Transactional
