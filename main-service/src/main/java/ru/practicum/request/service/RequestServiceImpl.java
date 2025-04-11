@@ -31,56 +31,55 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public RequestDto addRequest(Long userId, Long eventId) {
+        System.out.println("Создание запроса:");
+        System.out.println("userId: " + userId);
+        System.out.println("eventId: " + eventId);
+
+        if (userId == null || eventId == null) {
+            throw new ValidationException("userId и eventId не могут быть null");
+        }
+
         validateEventId(eventId);
         ensureRequestDoesNotExist(userId, eventId);
 
         User user = getUserById(userId);
+        System.out.println("Пользователь найден: " + user);
+
         Event event = getEventById(eventId);
+        System.out.println("Событие найдено: " + event);
+        System.out.println("Состояние события: " + event.getState());
+        System.out.println("Инициатор события: " + event.getInitiator().getId());
+        System.out.println("Подтверждённых запросов: " + event.getConfirmedRequests());
+        System.out.println("Лимит участников: " + event.getParticipantLimit());
+        System.out.println("Модерация запроса: " + event.getRequestModeration());
 
         validateRequestConditions(userId, event);
 
         Request request = RequestMapper.toRequest(event, user);
+        System.out.println("Создан объект запроса: " + request);
 
         if (canAutoConfirm(event)) {
+            System.out.println("Запрос можно подтвердить автоматически");
             confirmRequestAndUpdateEvent(event, request);
+        } else {
+            System.out.println("Запрос будет в ожидании подтверждения");
         }
 
-        return RequestMapper.toRequestDto(requestRepository.save(request));
+        Request savedRequest = requestRepository.save(request);
+        System.out.println("Запрос сохранён: " + savedRequest);
+
+        return RequestMapper.toRequestDto(savedRequest);
     }
 
     @Override
     public RequestDto cancelRequest(Long userId, Long requestId) {
-        System.out.println("Отмена запроса:");
-        System.out.println("userId: " + userId);
-        System.out.println("requestId: " + requestId);
-
-        if (userId == null || requestId == null) {
-            throw new ValidationException("userId и requestId не могут быть null");
-        }
-
-        User user = getUserById(userId);
-        System.out.println("Найден пользователь: " + user);
+        getUserById(userId);
 
         Request request = getRequestById(requestId);
-        System.out.println("Найден запрос: " + request);
-        System.out.println("Статус запроса: " + request.getStatus());
-        System.out.println("Автор запроса: " + request.getRequester());
-
-        if (!userId.equals(request.getRequester().getId())) {
-            System.out.println("Ошибка: userId не совпадает с автором запроса");
-            throw new ValidationException("Попытка несанкционированного доступа");
-        }
-
-        if (request.getStatus() == Status.CANCELED) {
-            System.out.println("Ошибка: запрос уже отменён");
-            throw new ValidationException("Запрос уже отменён");
-        }
+        validateCancelPermission(userId, request);
 
         request.setStatus(Status.CANCELED);
-        Request savedRequest = requestRepository.save(request);
-        System.out.println("Новый статус запроса: " + savedRequest.getStatus());
-
-        return RequestMapper.toRequestDto(savedRequest);
+        return RequestMapper.toRequestDto(requestRepository.save(request));
     }
 
     @Override
