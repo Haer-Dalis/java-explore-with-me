@@ -86,8 +86,6 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto getEventByUserIdAndEventId(Long userId, Long eventId) {
-        log.info("Вызван getEventByUserIdAndEventId с параметрами: userId={}, eventId={}", userId, eventId);
-
         checkExistUser(userId);
         Event event = getEventById(eventId);
         validateInitiator(userId, event);
@@ -96,6 +94,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getEventsByUserId(Long userId, Integer from, Integer size) {
+        log.info("Вызван getEventsByUserId с параметрами: userId={}, from={}, size={}", userId, from, size);
+
         checkExistUser(userId);
         Pageable pageable = PageRequest.of(Math.max(0, from / size), size);
         return eventRepository.findByInitiatorId(userId, pageable).stream()
