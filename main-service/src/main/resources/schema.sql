@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS events (
     participant_limit INT,
     published_on TIMESTAMP,
     request_moderation BOOLEAN,
+    state VARCHAR(255),
     views BIGINT,
     FOREIGN KEY (initiator_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE,
