@@ -114,9 +114,8 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public ResultRequestStatusDto changeRequestByCurrentUserId(Long ownerId, Long eventId, EventRequestStatus eventRequestStatus) {
-        log.info("Вызван changeRequestByCurrentUserId с параметрами: ownerId={}, eventId={}, eventRequestStatus={}", ownerId, eventId, eventRequestStatus);
-
+    public ResultRequestStatusDto changeRequestByCurrentUserId(Long ownerId, Long eventId,
+                                                               EventRequestStatus eventRequestStatus) {
         checkExistUser(ownerId);
         Event event = getEventById(eventId);
         validateInitiator(ownerId, event);
@@ -128,12 +127,11 @@ public class EventServiceImpl implements EventService {
         for (Request request : requests) {
             validatePendingRequest(request);
             if (!request.getEvent().getId().equals(eventId)) {
-                log.warn("Запрос с id={} не связан с событием с id={}", request.getId(), eventId);
-                throw new ConflictException("Запрос с id " + request.getId() + " никак не связан с событием id " + eventId);
+                throw new ConflictException("Запрос с id " + request.getId() +
+                        " никак не связан с событием id " + eventId);
             }
 
             if (event.getParticipantLimit() != 0 && event.getConfirmedRequests() >= event.getParticipantLimit()) {
-                log.warn("Лимит участников для события с id={} достигнут", eventId);
                 throw new ConflictException("Нельзя делать запросов больше, чем лимит");
             }
 
@@ -158,7 +156,6 @@ public class EventServiceImpl implements EventService {
                     rejected.add(request);
                     break;
                 default:
-                    log.error("Ошибка статуса: {}", eventRequestStatus.getStatus());
                     throw new ConflictException("Ошибка статуса " + eventRequestStatus.getStatus());
             }
         }
@@ -183,12 +180,14 @@ public class EventServiceImpl implements EventService {
 
     private void validateInitiator(Long userId, Event event) {
         if (!event.getInitiator().getId().equals(userId)) {
+            log.warn("Попытка несанкционированного доступа для события с id={} от пользователя с id={}", event.getId(), userId);
             throw new ConflictException("Попытка несанкционированного доступа");
         }
     }
 
     private void validatePendingRequest(Request request) {
         if (request.getStatus() != Status.PENDING) {
+            log.warn("Запрос с id={} не в статусе PENDING", request.getId());
             throw new ConflictException("Статус можно менять только в состоянии ожидания");
         }
     }
