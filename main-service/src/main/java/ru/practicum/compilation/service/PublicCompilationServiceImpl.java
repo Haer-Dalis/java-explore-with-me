@@ -1,7 +1,6 @@
 package ru.practicum.compilation.service;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -13,7 +12,6 @@ import ru.practicum.exception.NotFoundException;
 
 import java.util.List;
 
-@Slf4j
 @Service
 @AllArgsConstructor
 public class PublicCompilationServiceImpl implements PublicCompilationService {
@@ -22,36 +20,15 @@ public class PublicCompilationServiceImpl implements PublicCompilationService {
 
     @Override
     public List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size) {
-        log.info("Запрос на получение подборок: pinned={}, from={}, size={}", pinned, from, size);
+        Pageable pageable = PageRequest.of(Math.max(from, 0) / size, size);
 
-        int page = Math.max(from, 0) / size;
-        Pageable pageable = PageRequest.of(page, size);
+        List<Compilation> compilations = (pinned == null)
+                ? compilationRepository.findAll(pageable).getContent()
+                : compilationRepository.findCompilationsByPinned(pinned, pageable);
 
-        log.debug("Рассчитанный Pageable: page={}, size={}", page, size);
-
-        List<Compilation> compilations;
-
-        if (pinned == null) {
-            log.debug("Поиск всех подборок без фильтра pinned");
-            compilations = compilationRepository.findAll(pageable).getContent();
-        } else {
-            log.debug("Поиск подборок с фильтром pinned={}", pinned);
-            compilations = compilationRepository.findCompilationsByPinned(pinned, pageable);
-        }
-
-        log.debug("Найдено {} подборок", compilations.size());
-
-        List<CompilationDto> dtos = compilations.stream()
-                .map(compilation -> {
-                    CompilationDto dto = CompilationMapper.toCompilationDto(compilation);
-                    log.trace("Преобразована подборка: {}", dto);
-                    return dto;
-                })
+        return compilations.stream()
+                .map(CompilationMapper::toCompilationDto)
                 .toList();
-
-        log.info("Результат getCompilations: возвращено {} подборок", dtos.size());
-
-        return dtos;
     }
 
     @Override

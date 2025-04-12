@@ -30,10 +30,14 @@ public class CompilationServiceImpl implements CompilationService {
         if (foundEvents.size() != eventIds.size()) {
             throw new NotFoundException("Одно или более событий не существуют");
         }
-        Set<Event> sortedEvents = new TreeSet<>(Comparator.comparing(Event::getEventDate));
-        sortedEvents.addAll(foundEvents);
 
-        Compilation compilation = CompilationMapper.toCompilation(newCompilation, sortedEvents);
+        List<Event> sortedEvents = foundEvents.stream()
+                .sorted(Comparator.comparing(Event::getEventDate))
+                .toList();
+
+        Set<Event> events = new LinkedHashSet<>(sortedEvents);
+
+        Compilation compilation = CompilationMapper.toCompilation(newCompilation, events);
         Compilation savedCompilation = compilationRepository.save(compilation);
 
         return CompilationMapper.toCompilationDto(savedCompilation);
@@ -58,9 +62,12 @@ public class CompilationServiceImpl implements CompilationService {
                 throw new NotFoundException("Одно или более событий не существуют");
             }
 
-            Set<Event> sortedEvents = new TreeSet<>(Comparator.comparing(Event::getEventDate));
-            sortedEvents.addAll(foundEvents);
-            compilation.setEvents(sortedEvents);
+            List<Event> sortedEvents = foundEvents.stream()
+                    .sorted(Comparator.comparing(Event::getEventDate))
+                    .toList();
+
+            Set<Event> events = new LinkedHashSet<>(sortedEvents);
+            compilation.setEvents(events);
         }
 
         Compilation savedCompilation = compilationRepository.save(compilation);
