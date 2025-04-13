@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.additions.Constants;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.service.EventService;
 import ru.practicum.request.dto.RequestDto;
@@ -35,8 +36,8 @@ public class EventController {
 
     @GetMapping("/{userId}/events")
     public List<EventShortDto> getEventsByUserId(@PathVariable("userId") Long userId,
-                                                 @RequestParam(defaultValue = "0") Integer from,
-                                                 @RequestParam(defaultValue = "10") Integer size) {
+                                                 @RequestParam(defaultValue = Constants.DEFAULT_FROM) Integer from,
+                                                 @RequestParam(defaultValue = Constants.DEFAULT_SIZE) Integer size) {
         return eventService.getEventsByUserId(userId, from, size);
     }
 

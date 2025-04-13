@@ -29,7 +29,7 @@ public class PublicCategoryServiceImpl implements PublicCategoryService {
     @Override
     public CategoryDto getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(String.format("Категория не обнаружжена с id = %d", id)));
+                .orElseThrow(() -> new NotFoundException(String.format("Категория не обнаружена с id = %d", id)));
         return CategoryMapper.toCategoryDto(category);
     }
 }

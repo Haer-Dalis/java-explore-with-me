@@ -2,6 +2,7 @@ package ru.practicum.compilation.controller;
 
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.additions.Constants;
 import ru.practicum.compilation.dto.CompilationDto;
 import ru.practicum.compilation.service.PublicCompilationService;
 
@@ -15,8 +16,8 @@ public class PublicCompilationController {
 
     @GetMapping
     public List<CompilationDto> getCompilations(@RequestParam(required = false) Boolean pinned,
-                                                @RequestParam(defaultValue = "0") Integer from,
-                                                @RequestParam(defaultValue = "10") Integer size) {
+                                                @RequestParam(defaultValue = Constants.DEFAULT_FROM) Integer from,
+                                                @RequestParam(defaultValue = Constants.DEFAULT_SIZE) Integer size) {
         return publicCompilationService.getCompilations(pinned, from, size);
     }
 

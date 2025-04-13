@@ -144,21 +144,15 @@ public class EventServiceImpl implements EventService {
             }
 
             switch (eventRequestStatus.getStatus()) {
-                case "CONFIRMED":
-                    if (event.getConfirmedRequests() < event.getParticipantLimit()) {
-                        updateRequestStatus(request, Status.CONFIRMED, event);
-                        confirmed.add(request);
-                    } else {
-                        updateRequestStatus(request, Status.REJECTED, null);
-                        rejected.add(request);
-                    }
-                    break;
-                case "REJECTED":
+                case CONFIRMED -> {
+                    updateRequestStatus(request, Status.CONFIRMED, event);
+                    confirmed.add(request);
+                }
+                case REJECTED -> {
                     updateRequestStatus(request, Status.REJECTED, null);
                     rejected.add(request);
-                    break;
-                default:
-                    throw new ConflictException("Ошибка статуса " + eventRequestStatus.getStatus());
+                }
+                default -> throw new ConflictException("Неверный статус: " + eventRequestStatus.getStatus());
             }
         }
 

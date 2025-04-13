@@ -3,6 +3,7 @@ package ru.practicum.event.controller;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.additions.Constants;
 import ru.practicum.event.dto.EventDto;
 import ru.practicum.event.dto.State;
 import ru.practicum.event.dto.UpdateEventDto;
@@ -22,8 +23,8 @@ public class AdminEventController {
                                     @RequestParam(required = false) List<Long> categories,
                                     @RequestParam(required = false) String rangeStart,
                                     @RequestParam(required = false) String rangeEnd,
-                                    @RequestParam(defaultValue = "0") Integer from,
-                                    @RequestParam(defaultValue = "10") Integer size) {
+                                    @RequestParam(defaultValue = Constants.DEFAULT_FROM) Integer from,
+                                    @RequestParam(defaultValue = Constants.DEFAULT_SIZE) Integer size) {
         return adminEventService.getEvents(users, states, categories, rangeStart, rangeEnd, from, size);
     }
 

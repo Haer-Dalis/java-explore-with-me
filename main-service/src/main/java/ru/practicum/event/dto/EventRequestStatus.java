@@ -1,8 +1,13 @@
 package ru.practicum.event.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import lombok.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import ru.practicum.request.dto.Status;
 
 import java.util.List;
 
@@ -12,9 +17,8 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class EventRequestStatus {
-
-    @NotBlank
-    private String status;
+    @NotNull
+    private Status status;
 
     @NotEmpty
     private List<Long> requestIds;
