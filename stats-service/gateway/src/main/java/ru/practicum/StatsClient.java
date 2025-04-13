@@ -47,7 +47,7 @@ public class StatsClient  {
                 builder.toUriString(),
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<StatsDto>>() {});
+                new ParameterizedTypeReference<>() {});
 
         return responseEntity.getBody();
     }
