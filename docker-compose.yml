@@ -17,11 +17,12 @@ services:
     image: postgres:16.1
     container_name: stat-db-container
     ports:
-      - "6541:5432"
+      - "5432:5432"
     environment:
       - POSTGRES_DB=explorewithme
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=user
+    restart: on-failure
 
   ewm-service:
     build: main-service
@@ -31,18 +32,20 @@ services:
     depends_on:
       - ewm-db
     environment:
-      - GATEWAY_URL=http://stats-server:9090
+      - STATS_GATEWAY_URL=http://stats-server:9090
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=user
       - SPRING_DRIVER_CLASS_NAME=org.postgresql.Driver
+    restart: on-failure
 
   ewm-db:
     image: postgres:16.1
     container_name: ewm-db-container
     ports:
-      - "6542:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_DB=ewm
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=user
+    restart: on-failure
