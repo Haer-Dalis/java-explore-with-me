@@ -91,22 +91,31 @@ public class PublicEventServiceImpl implements PublicEventService {
     @Override
     public EventDto getEventById(Long id, HttpServletRequest request) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Событие с id = " + id + " не было найдено"));
+                .filter(e -> e.getState() == State.PUBLISHED)
+                .orElseThrow(() -> new NotFoundException(
+                        "Событие не найдено или не опубликовано (id: " + id + ")"));
 
-        if (!event.getState().equals(State.PUBLISHED)) {
-            throw new NotFoundException("Можно смотреть только опубликованные события");
-        }
+        updateEventViews(event, request);
 
-        String start = event.getCreatedOn().withNano(0).format(DATE_TIME_FORMATTER);
-        String end = event.getEventDate().withNano(0).format(DATE_TIME_FORMATTER);
-        List<StatsDto> viewStatsDtoList = statsClient.getStatsByDateAndUris(start, end,
-                List.of(request.getRequestURI()), true);
-
-        if (!viewStatsDtoList.isEmpty()) {
-            event.setViews(viewStatsDtoList.getFirst().getHits());
-        }
         statsClient.createHit(hitService.createHitDto(request));
+
         return EventMapper.toEventDto(event);
+    }
+
+    private void updateEventViews(Event event, HttpServletRequest request) {
+        LocalDateTime createdOn = event.getCreatedOn().withNano(0);
+        LocalDateTime eventDate = event.getEventDate().withNano(0);
+
+        List<StatsDto> stats = statsClient.getStatsByDateAndUris(
+                createdOn.format(DATE_TIME_FORMATTER),
+                eventDate.format(DATE_TIME_FORMATTER),
+                List.of(request.getRequestURI()),
+                true
+        );
+
+        stats.stream()
+                .findFirst()
+                .ifPresent(stat -> event.setViews(stat.getHits()));
     }
 }
 
