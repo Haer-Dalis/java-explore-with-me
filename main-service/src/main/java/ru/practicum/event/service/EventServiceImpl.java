@@ -2,7 +2,6 @@ package ru.practicum.event.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -51,32 +50,25 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDto addEvent(Long userId, NewEventDto newEventDto) {
         checkDateTime(newEventDto.getEventDate());
-        User user = getUserById(userId);
-        Category category = getCategoryById(newEventDto.getCategory());
-        Location location = locationRepository.save(LocationMapper.toLocation(newEventDto.getLocation()));
 
-        Event event = EventMapper.toEvent(user, category, newEventDto, location);
+        Event event = EventMapper.toEvent(
+                getUserById(userId),
+                getCategoryById(newEventDto.getCategory()),
+                newEventDto,
+                locationRepository.save(LocationMapper.toLocation(newEventDto.getLocation()))
+        );
         event.setState(State.PENDING);
 
-        try {
-            event = eventRepository.save(event);
-        } catch (DataIntegrityViolationException exception) {
-            throw new ValidationException("Категория не может ничего не содаржать");
-        }
-
-        return EventMapper.toEventDto(event);
+        return EventMapper.toEventDto(eventRepository.save(event));
     }
 
     @Override
     public EventDto updateEvent(Long userId, Long eventId, UpdateEventDto updateEventDto) {
-        checkExistUser(userId);
-        Event event = getEventById(eventId);
+        Event event = getEventByIdAndInitiator(eventId, userId);
 
-        validateInitiator(userId, event);
         if (event.getState() == State.PUBLISHED) {
             throw new ConflictException("События можно изменять в статусах PENDING или CANCELED");
         }
-
         if (updateEventDto.getEventDate() != null) {
             checkDateTime(updateEventDto.getEventDate());
         }
@@ -85,23 +77,23 @@ public class EventServiceImpl implements EventService {
                 ? getCategoryById(updateEventDto.getCategory())
                 : event.getCategory();
 
-        Event updatedEvent = EventMapper.toUpdatedEvent(updateEventDto, category, event);
-        return EventMapper.toEventDto(eventRepository.save(updatedEvent));
+        return EventMapper.toEventDto(
+                eventRepository.save(EventMapper.toUpdatedEvent(updateEventDto, category, event))
+        );
     }
 
     @Override
     public EventDto getByUserAndId(Long userId, Long eventId) {
-        checkExistUser(userId);
-        Event event = getEventById(eventId);
-        validateInitiator(userId, event);
-        return EventMapper.toEventDto(event);
+        return EventMapper.toEventDto(getEventByIdAndInitiator(eventId, userId));
     }
 
     @Override
     public List<EventShortDto> getAllByUser(Long userId, Integer from, Integer size) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("Пользователь не найден");
+        }
 
-        checkExistUser(userId);
-        Pageable pageable = PageRequest.of(Math.max(0, from / size), size);
+        Pageable pageable = PageRequest.of(from / size, size);
         return eventRepository.findByInitiatorId(userId, pageable).stream()
                 .map(EventMapper::toEventShortDto)
                 .collect(Collectors.toList());
@@ -109,98 +101,80 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<RequestDto> getRequestsByUser(Long ownerId, Long eventId) {
-        checkExistUser(ownerId);
-        Event event = getEventById(eventId);
-        validateInitiator(ownerId, event);
-
-        List<Request> requests = requestRepository.findRequestsByEventId(eventId,
-                Sort.by(Sort.Direction.DESC, "created"));
-
-        return mapToDtoList(requests);
+        getEventByIdAndInitiator(eventId, ownerId);
+        return requestRepository.findRequestsByEventId(eventId, Sort.by(Sort.Direction.DESC, "created"))
+                .stream()
+                .map(RequestMapper::toRequestDto)
+                .toList();
     }
 
     @Override
-    public RequestUpdateResultDto updateRequests(Long ownerId, Long eventId,
-                                                 EventRequestUpdate eventRequestStatus) {
-        checkExistUser(ownerId);
-        Event event = getEventById(eventId);
-        validateInitiator(ownerId, event);
-
+    public RequestUpdateResultDto updateRequests(Long ownerId, Long eventId, EventRequestUpdate eventRequestStatus) {
+        Event event = getEventByIdAndInitiator(eventId, ownerId);
         List<Request> requests = requestRepository.findAllById(eventRequestStatus.getRequestIds());
+
         List<Request> confirmed = new ArrayList<>();
         List<Request> rejected = new ArrayList<>();
 
-        for (Request request : requests) {
-            validatePendingRequest(request);
+        requests.forEach(request -> {
+            if (request.getStatus() != Status.PENDING) {
+                throw new ConflictException("Статус можно менять только в состоянии ожидания");
+            }
             if (!request.getEvent().getId().equals(eventId)) {
-                throw new ConflictException("Запрос с id " + request.getId() +
-                        " никак не связан с событием id " + eventId);
+                throw new ConflictException("Запрос с id " + request.getId() + " не связан с событием id " + eventId);
             }
 
             if (event.getParticipantLimit() != 0 && event.getConfirmedRequests() >= event.getParticipantLimit()) {
-                throw new ConflictException("Нельзя делать запросов больше, чем лимит");
+                throw new ConflictException("Достигнут лимит участников");
             }
 
             if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
-                updateRequestStatus(request, Status.CONFIRMED, event);
+                confirmRequest(request, event);
                 confirmed.add(request);
-                continue;
-            }
-
-            switch (eventRequestStatus.getStatus()) {
-                case CONFIRMED -> {
-                    updateRequestStatus(request, Status.CONFIRMED, event);
-                    confirmed.add(request);
+            } else {
+                switch (eventRequestStatus.getStatus()) {
+                    case CONFIRMED -> {
+                        confirmRequest(request, event);
+                        confirmed.add(request);
+                    }
+                    case REJECTED -> {
+                        request.setStatus(Status.REJECTED);
+                        rejected.add(request);
+                    }
+                    default -> throw new ConflictException("Неверный статус: " + eventRequestStatus.getStatus());
                 }
-                case REJECTED -> {
-                    updateRequestStatus(request, Status.REJECTED, null);
-                    rejected.add(request);
-                }
-                default -> throw new ConflictException("Неверный статус: " + eventRequestStatus.getStatus());
             }
-        }
+        });
 
         if (event.getConfirmedRequests().equals(event.getParticipantLimit())) {
-            for (Request request : requests) {
-                if (request.getStatus() == Status.PENDING) {
-                    updateRequestStatus(request, Status.REJECTED, null);
-                    rejected.add(request);
-                }
-            }
+            requests.stream()
+                    .filter(r -> r.getStatus() == Status.PENDING)
+                    .forEach(r -> {
+                        r.setStatus(Status.REJECTED);
+                        rejected.add(r);
+                    });
         }
 
         requestRepository.saveAll(requests);
         eventRepository.save(event);
 
         return RequestUpdateResultDto.builder()
-                .confirmedRequests(mapToDtoList(confirmed))
-                .rejectedRequests(mapToDtoList(rejected))
+                .confirmedRequests(confirmed.stream().map(RequestMapper::toRequestDto).toList())
+                .rejectedRequests(rejected.stream().map(RequestMapper::toRequestDto).toList())
                 .build();
     }
 
-    private void validateInitiator(Long userId, Event event) {
+    private void confirmRequest(Request request, Event event) {
+        request.setStatus(Status.CONFIRMED);
+        event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+    }
+
+    private Event getEventByIdAndInitiator(Long eventId, Long userId) {
+        Event event = getEventById(eventId);
         if (!event.getInitiator().getId().equals(userId)) {
             throw new ConflictException("Попытка несанкционированного доступа");
         }
-    }
-
-    private void validatePendingRequest(Request request) {
-        if (request.getStatus() != Status.PENDING) {
-            throw new ConflictException("Статус можно менять только в состоянии ожидания");
-        }
-    }
-
-    private void updateRequestStatus(Request request, Status status, Event event) {
-        request.setStatus(status);
-        if (status == Status.CONFIRMED && event != null) {
-            event.setConfirmedRequests(event.getConfirmedRequests() + 1);
-        }
-    }
-
-    private List<RequestDto> mapToDtoList(List<Request> requests) {
-        return requests.stream()
-                .map(RequestMapper::toRequestDto)
-                .collect(Collectors.toList());
+        return event;
     }
 
     private User getUserById(Long id) {
@@ -218,15 +192,9 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("Событие с id " + id + " не обнаружено"));
     }
 
-    private void checkExistUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new NotFoundException("Пользователь с id = " + id + " не обнаружен");
-        }
-    }
-
     private void checkDateTime(LocalDateTime eventDate) {
         if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ValidationException("Не соблюдено правило двух часов");
+            throw new ValidationException("Дата события должна быть не раньше чем через 2 часа от текущего момента");
         }
     }
 }
