@@ -31,6 +31,8 @@ public class AdminEventServiceImpl implements AdminEventService {
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
 
+    private static final LocalDateTime MAX_DATE = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
+
     @Override
     public List<EventDto> getEvents(List<Long> users, List<State> states, List<Long> categories,
                                     String rangeStart, String rangeEnd, Integer from, Integer size) {
@@ -42,7 +44,10 @@ public class AdminEventServiceImpl implements AdminEventService {
             validateDateRange(start, end);
         }
 
-        List<Event> events = eventRepository.findAdminEvents(users, states, categories, start, end, pageable);
+        LocalDateTime queryStart = (start != null) ? start : LocalDateTime.now();
+        LocalDateTime queryEnd = (end != null) ? end : MAX_DATE;
+
+        List<Event> events = eventRepository.findAdminEvents(users, states, categories, queryStart, queryEnd, pageable);
 
         return events.stream()
                 .map(EventMapper::toEventDto)
