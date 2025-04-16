@@ -121,7 +121,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"annotation\": \"Обсуждение книг про единорогов\",\r\n    \"category\": 122,\r\n    \"description\": \"Встреча в целом не очень, но надо посетить\",\r\n    \"eventDate\": \"2025-04-10 12:00:00\",\r\n    \"location\": {\"lat\": 55.4424, \"lon\": -37.3636},\r\n    \"paid\": \"false\",\r\n    \"participantLimit\": \"5\",\r\n    \"requestModeration\": \"false\",\r\n    \"title\": \"Книги\"\r\n}",
+          "raw": "{\r\n  \"annotation\": \"Обсуждение книг про единорогов\",\r\n  \"category\": 122,\r\n  \"description\": \"Встреча в целом не очень, но надо посетить\",\r\n  \"eventDate\": \"2025-04-20 12:00:00\",\r\n  \"location\": {\"lat\": 55.4424, \"lon\": -37.3636},\r\n  \"paid\": false,\r\n  \"participantLimit\": 5,\r\n  \"requestModeration\": false,\r\n  \"title\": \"Книги\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
