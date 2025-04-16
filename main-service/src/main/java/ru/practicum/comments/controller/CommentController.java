@@ -28,14 +28,20 @@ public class CommentController {
 
     private final CommentsService commentsService;
 
-    @GetMapping("/event/{eventId}")
+    @PostMapping("/user/{userId}/event/{eventId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CommentDto addComment(@PathVariable Long userId,
+                                 @PathVariable Long eventId,
+                                 @Valid @RequestBody NewCommentDto newCommentDto) {
+        return commentsService.addCommentDto(userId, eventId, newCommentDto);
+    }
+
+    @PatchMapping("/user/{userId}/update/{commentId}")
     @ResponseStatus(HttpStatus.OK)
-    public List<CommentImportDto> getEventComments(@PathVariable Long eventId,
-                                                   @RequestParam(required = false) String rangeStart,
-                                                   @RequestParam(required = false) String rangeEnd,
-                                                   @RequestParam(defaultValue = Constants.DEFAULT_FROM) Integer from,
-                                                   @RequestParam(defaultValue = Constants.DEFAULT_SIZE) Integer size) {
-        return commentsService.getEventCommentsDto(eventId, rangeStart, rangeEnd, from, size);
+    public CommentDto updateComment(@PathVariable Long userId,
+                                    @PathVariable Long commentId,
+                                    @Valid @RequestBody CommentImportDto commentNewDto) {
+        return commentsService.updateCommentDto(userId, commentId, commentNewDto);
     }
 
     @GetMapping("/user/{userId}")
@@ -48,26 +54,20 @@ public class CommentController {
         return commentsService.getUserCommentsDto(userId, rangeStart, rangeEnd, from, size);
     }
 
-    @PostMapping("/user/{userId}/event/{eventId}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public CommentDto addComment(@PathVariable Long userId,
-                                 @PathVariable Long eventId,
-                                 @Valid @RequestBody NewCommentDto newCommentDto) {
-        return commentsService.addCommentDto(userId, eventId, newCommentDto);
-    }
-
-    @PatchMapping("/user/{userId}/{commentId}")
-    @ResponseStatus(HttpStatus.OK)
-    public CommentDto updateComment(@PathVariable Long userId,
-                                    @PathVariable Long commentId,
-                                    @Valid @RequestBody CommentImportDto commentNewDto) {
-        return commentsService.updateCommentDto(userId, commentId, commentNewDto);
-    }
-
-    @DeleteMapping("/user/{userId}/{commentId}")
+    @DeleteMapping("/user/{userId}/delete/{commentId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteComment(@PathVariable Long userId,
                               @PathVariable Long commentId) {
         commentsService.deleteComment(userId, commentId);
+    }
+
+    @GetMapping("/event/{eventId}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<CommentImportDto> getEventComments(@PathVariable Long eventId,
+                                                   @RequestParam(required = false) String rangeStart,
+                                                   @RequestParam(required = false) String rangeEnd,
+                                                   @RequestParam(defaultValue = Constants.DEFAULT_FROM) Integer from,
+                                                   @RequestParam(defaultValue = Constants.DEFAULT_SIZE) Integer size) {
+        return commentsService.getEventCommentsDto(eventId, rangeStart, rangeEnd, from, size);
     }
 }

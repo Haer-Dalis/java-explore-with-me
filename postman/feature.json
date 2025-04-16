@@ -254,7 +254,7 @@
               "pm.test(\"В ответе ровно 2 комментария\", function () {\r",
               "    pm.response.to.have.status(200);\r",
               "    const json = pm.response.json();\r",
-              "    pm.expect(json.length).to.eql(2); // проверка, что длина массива = 2\r",
+              "    pm.expect(json.length).to.eql(2);\r",
               "});"
             ],
             "type": "text/javascript",
@@ -334,7 +334,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/comments/user/137/1",
+          "raw": "http://localhost:8080/comments/user/137/update/1",
           "protocol": "http",
           "host": [
             "localhost"
@@ -344,6 +344,7 @@
             "comments",
             "user",
             "137",
+            "update",
             "1"
           ]
         }
@@ -370,7 +371,7 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "http://localhost:8080/comments/user/137/1",
+          "raw": "http://localhost:8080/comments/user/137/delete/1",
           "protocol": "http",
           "host": [
             "localhost"
@@ -380,6 +381,7 @@
             "comments",
             "user",
             "137",
+            "delete",
             "1"
           ]
         }
@@ -387,51 +389,16 @@
       "response": []
     },
     {
-      "name": "Admin deletes a comment",
+      "name": "Comments by event",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Комментарий успешно удалён\", function () {\r",
-              "    pm.response.to.have.status(204);\r",
-              "});"
-            ],
-            "type": "text/javascript",
-            "packages": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:8080/admin/comments/2",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "admin",
-            "comments",
-            "2"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "User comments are empty",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Список комментариев пуст\", function () {\r",
+              "pm.test(\"В списке комментариев для события только 1 комментарий\", function () {\r",
               "    pm.response.to.have.status(200);\r",
               "    const json = pm.response.json();\r",
-              "    pm.expect(json.length).to.eql(0);\r",
+              "    pm.expect(json.length).to.eql(1);\r",
               "});"
             ],
             "type": "text/javascript",
