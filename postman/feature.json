@@ -351,13 +351,13 @@
       "response": []
     },
     {
-      "name": "an admin deletes a comment",
+      "name": "User deletes a comment",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Status code should be 204\", function() {\r",
+              "pm.test(\"Статус 204 коментарий удален\", function() {\r",
               "    pm.response.to.have.status(204);\r",
               "});"
             ],
@@ -381,6 +381,78 @@
             "user",
             "137",
             "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Admin deletes a comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Комментарий успешно удалён\", function () {\r",
+              "    pm.response.to.have.status(204);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/admin/comments/2",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "admin",
+            "comments",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User comments are empty",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Список комментариев пуст\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "    const json = pm.response.json();\r",
+              "    pm.expect(json.length).to.eql(0);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/comments/user/137",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "comments",
+            "user",
+            "137"
           ]
         }
       },

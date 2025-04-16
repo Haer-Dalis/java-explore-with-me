@@ -47,11 +47,11 @@ public class CommentsServiceImpl implements CommentsService {
     }
 
     @Override
-    public CommentDto updateCommentDto(Long userId, Long commentId, CommentImportDto dto) {
+    public CommentDto updateCommentDto(Long userId, Long commentId, CommentImportDto commentImportDto) {
         Comment updatingComment = commentsRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Комментарий не найден: " + commentId));
         validateOwnership(updatingComment.getUser().getId(), userId);
-        Optional.ofNullable(dto.getMessage()).ifPresent(updatingComment::setMessage);
+        Optional.ofNullable(commentImportDto.getMessage()).ifPresent(updatingComment::setMessage);
         return CommentMapper.toCommentDto(commentsRepository.save(updatingComment));
     }
 
