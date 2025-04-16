@@ -121,7 +121,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"annotation\": \"Обсуждение книг про единорогов\",\r\n    \"category\": 1,\r\n    \"description\": \"Встреча в целом не очень, но надо посетить\",\r\n    \"eventDate\": \"2025-04-10 12:00:00\",\r\n    \"location\": {\"lat\": 55.4424, \"lon\": -37.3636},\r\n    \"paid\": \"false\",\r\n    \"participantLimit\": \"5\",\r\n    \"requestModeration\": \"false\",\r\n    \"title\": \"Книги\"\r\n}",
+          "raw": "{\r\n    \"annotation\": \"Обсуждение книг про единорогов\",\r\n    \"category\": 122,\r\n    \"description\": \"Встреча в целом не очень, но надо посетить\",\r\n    \"eventDate\": \"2025-04-10 12:00:00\",\r\n    \"location\": {\"lat\": 55.4424, \"lon\": -37.3636},\r\n    \"paid\": \"false\",\r\n    \"participantLimit\": \"5\",\r\n    \"requestModeration\": \"false\",\r\n    \"title\": \"Книги\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -129,7 +129,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/users/1/events",
+          "raw": "http://localhost:8080/users/137/events",
           "protocol": "http",
           "host": [
             "localhost"
@@ -137,7 +137,7 @@
           "port": "8080",
           "path": [
             "users",
-            "1",
+            "137",
             "events"
           ]
         }
@@ -177,7 +177,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/users/1/comments/1",
+          "raw": "http://localhost:8080/users/137/comments/1",
           "protocol": "http",
           "host": [
             "localhost"
@@ -185,7 +185,7 @@
           "port": "8080",
           "path": [
             "users",
-            "1",
+            "137",
             "comments",
             "1"
           ]
@@ -224,7 +224,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/users/1/comments/1",
+          "raw": "http://localhost:8080/users/137/comments/1",
           "protocol": "http",
           "host": [
             "localhost"
@@ -232,7 +232,7 @@
           "port": "8080",
           "path": [
             "users",
-            "1",
+            "137",
             "comments",
             "1"
           ]

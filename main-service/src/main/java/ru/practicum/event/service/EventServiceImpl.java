@@ -28,7 +28,6 @@ import ru.practicum.request.dto.Status;
 import ru.practicum.request.mapper.RequestMapper;
 import ru.practicum.request.model.Request;
 import ru.practicum.request.repository.RequestRepository;
-import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -48,11 +47,12 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto addEvent(Long userId, NewEventDto newEventDto) {
-        checkDateTime(newEventDto.getEventDate());
+        checkTime(newEventDto.getEventDate());
 
         Event event = EventMapper.toEvent(
-                getUserById(userId),
-                getCategoryById(newEventDto.getCategory()),
+                userRepository.findById(userId)
+                        .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не обнаружен")),
+                getCategory(newEventDto.getCategory()),
                 newEventDto,
                 locationRepository.save(LocationMapper.toLocation(newEventDto.getLocation()))
         );
@@ -69,11 +69,11 @@ public class EventServiceImpl implements EventService {
             throw new ConflictException("События можно изменять в статусах PENDING или CANCELED");
         }
         if (updateEventDto.getEventDate() != null) {
-            checkDateTime(updateEventDto.getEventDate());
+            checkTime(updateEventDto.getEventDate());
         }
 
         Category category = updateEventDto.getCategory() != null
-                ? getCategoryById(updateEventDto.getCategory())
+                ? getCategory(updateEventDto.getCategory())
                 : event.getCategory();
 
         return EventMapper.toEventDto(
@@ -163,37 +163,28 @@ public class EventServiceImpl implements EventService {
                 .build();
     }
 
+    private void checkTime(LocalDateTime eventDate) {
+        if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
+            throw new ValidationException("Дата события должна быть не раньше чем через 2 часа от текущего момента");
+        }
+    }
+
     private void confirmRequest(Request request, Event event) {
         request.setStatus(Status.CONFIRMED);
         event.setConfirmedRequests(event.getConfirmedRequests() + 1);
     }
 
     private Event getEventByIdAndInitiator(Long eventId, Long userId) {
-        Event event = getEventById(eventId);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие с id " + eventId + " не обнаружено"));
         if (!event.getInitiator().getId().equals(userId)) {
             throw new ConflictException("Попытка несанкционированного доступа");
         }
         return event;
     }
 
-    private User getUserById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id " + id + " не обнаружен"));
-    }
-
-    private Category getCategoryById(Long id) {
+    private Category getCategory(Long id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Категория с id " + id + " не обнаружена"));
-    }
-
-    private Event getEventById(Long id) {
-        return eventRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Событие с id " + id + " не обнаружено"));
-    }
-
-    private void checkDateTime(LocalDateTime eventDate) {
-        if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ValidationException("Дата события должна быть не раньше чем через 2 часа от текущего момента");
-        }
     }
 }
