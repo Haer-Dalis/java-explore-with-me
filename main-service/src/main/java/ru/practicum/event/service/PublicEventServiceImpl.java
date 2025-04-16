@@ -13,7 +13,7 @@ import ru.practicum.StatsDto;
 import ru.practicum.additions.Constants;
 import ru.practicum.event.dto.EventDto;
 import ru.practicum.event.dto.EventShortDto;
-import ru.practicum.event.dto.SortType;
+import ru.practicum.event.dto.SortCriteria;
 import ru.practicum.event.dto.State;
 import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
@@ -59,7 +59,7 @@ public class PublicEventServiceImpl implements PublicEventService {
 
     private Pageable createPageable(Integer from, Integer size, String sort) {
         if (sort != null) {
-            String sortField = sort.equals(SortType.EVENT_DATE.name()) ? "eventDate" : "views";
+            String sortField = sort.equals(SortCriteria.EVENT_DATE.name()) ? "eventDate" : "views";
             return PageRequest.of(from / size, size, Sort.by(sortField).descending());
         }
         return PageRequest.of(from / size, size);
