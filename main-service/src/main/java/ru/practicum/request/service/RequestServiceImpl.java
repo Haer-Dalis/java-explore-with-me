@@ -1,7 +1,6 @@
 package ru.practicum.request.service;
 
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import ru.practicum.event.dto.State;
@@ -20,13 +19,10 @@ import ru.practicum.user.repository.UserRepository;
 
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class RequestServiceImpl implements RequestService {
-    private static final Sort REQUEST_SORT = Sort.by(Sort.Direction.DESC, "created");
-
     private final RequestRepository requestRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
@@ -36,9 +32,8 @@ public class RequestServiceImpl implements RequestService {
         validateEventId(eventId);
         ensureRequestDoesNotExist(userId, eventId);
 
-        User user = getUserById(userId);
-        Event event = getEventById(eventId);
-
+        User user = getUser(userId);
+        Event event = getEvent(eventId);
         validateRequestConditions(userId, event);
 
         Request request = RequestMapper.toRequest(event, user);
@@ -52,9 +47,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public RequestDto cancelRequest(Long userId, Long requestId) {
-        getUserById(userId);
-        Request request = getRequestById(requestId);
-
+        Request request = getRequest(requestId);
         validateCancelPermission(userId, request);
 
         request.setStatus(Status.CANCELED);
@@ -63,33 +56,31 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<RequestDto> getRequestDtosByUserId(Long userId) {
-        getUserById(userId);
-
-        return requestRepository.findAllByRequesterId(userId, REQUEST_SORT)
+        return requestRepository.findByUserId(userId)
                 .stream()
                 .map(RequestMapper::toRequestDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private void validateEventId(Long eventId) {
         if (eventId == null) {
-            throw new ValidationException("ID события не может быть null");
+            throw new ValidationException(" ID события не может быть null");
         }
     }
 
     private void ensureRequestDoesNotExist(Long userId, Long eventId) {
         if (requestRepository.existsByRequesterIdAndEventId(userId, eventId)) {
-            throw new ConflictException("Дубликация события");
+            throw new ConflictException("Запрос уже есть для этого пользователя и события");
         }
     }
 
     private void validateRequestConditions(Long userId, Event event) {
         if (userId.equals(event.getInitiator().getId())) {
-            throw new ConflictException("Ты хочешь участвовать в своем собственном событии");
+            throw new ConflictException("Нельзя участвовать в своем событии");
         }
 
         if (!event.getState().equals(State.PUBLISHED)) {
-            throw new ConflictException("СОбытие должно быть опубликовано");
+            throw new ConflictException("событие должно быть опубликовано");
         }
 
         if (event.getParticipantLimit() != 0 &&
@@ -110,25 +101,25 @@ public class RequestServiceImpl implements RequestService {
 
     private void validateCancelPermission(Long userId, Request request) {
         if (request.getStatus().equals(Status.CANCELED)) {
-            throw new ValidationException("Запрос уже отменен");
+            throw new ValidationException("Уже отменен");
         }
 
         if (!userId.equals(request.getRequester().getId())) {
-            throw new ValidationException("Попытка несанкционированного доступа");
+            throw new ValidationException("Нет разрешения");
         }
     }
 
-    private User getUserById(Long id) {
+    private User getUser(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден id: " + id));
+                .orElseThrow(() -> new NotFoundException("Юзер не обнаружен id: " + id));
     }
 
-    private Request getRequestById(Long id) {
+    private Request getRequest(Long id) {
         return requestRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Запрос не найден id: " + id));
     }
 
-    private Event getEventById(Long id) {
+    private Event getEvent(Long id) {
         return eventRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено id: " + id));
     }
