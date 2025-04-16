@@ -11,11 +11,13 @@ import java.util.List;
 @Repository
 public interface CommentsRepository extends JpaRepository<Comment, Long> {
 
-    List<Comment> findByEventIdAndCreatedBetweenOrderByIdAsc(Long eventId, LocalDateTime start, LocalDateTime end, Pageable pageable);
+    List<Comment> findByEventIdAndCreatedBetweenOrderByIdAsc(Long eventId, LocalDateTime start,
+                                                             LocalDateTime end, Pageable pageable);
 
-    List<Comment> findByUserIdAndCreatedBetweenOrderByIdAsc(Long userId, LocalDateTime start, LocalDateTime end, Pageable pageable);
+    List<Comment> findByUserIdAndCreatedBetweenOrderByIdAsc(Long userId, LocalDateTime start,
+                                                            LocalDateTime end, Pageable pageable);
 
     List<Comment> findByEventIdOrderByIdAsc(Long eventId, Pageable pageable);
-    
+
     List<Comment> findByUserIdOrderByIdAsc(Long userId, Pageable pageable);
 }
