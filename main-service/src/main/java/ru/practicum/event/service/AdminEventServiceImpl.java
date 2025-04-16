@@ -42,8 +42,7 @@ public class AdminEventServiceImpl implements AdminEventService {
             validateDateRange(start, end);
         }
 
-        List<Event> events = eventRepository.findAdminFilteredEvents(users, states, categories, start, end, pageable);
-
+        List<Event> events = eventRepository.findAllEvents(users, states, categories, start, end, pageable);
         return events.stream()
                 .map(EventMapper::toEventDto)
                 .toList();
@@ -55,7 +54,7 @@ public class AdminEventServiceImpl implements AdminEventService {
                 .orElseThrow(() -> new NotFoundException("Событие с id = " + eventId + " не обнаружено"));
 
         if (!event.getState().equals(State.PENDING)) {
-            throw new ConflictException("Событие должно быть в состоянии ожидания");
+            throw new ConflictException("Событие должно быть в ином состоянии");
         }
 
         if (updateEventDto.getEventDate() != null) {
@@ -89,7 +88,7 @@ public class AdminEventServiceImpl implements AdminEventService {
 
     private void validateEventDate(LocalDateTime eventDate) {
         if (eventDate.isBefore(LocalDateTime.now().plusHours(1))) {
-            throw new ConflictException("Дата события должна быть минимум через час");
+            throw new ConflictException("Дата начала события должна быть не ранее чем за час от текущего времени");
         }
     }
 
