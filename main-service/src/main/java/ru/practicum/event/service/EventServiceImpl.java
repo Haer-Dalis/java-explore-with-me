@@ -21,7 +21,6 @@ import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.location.mapper.LocationMapper;
-import ru.practicum.location.model.Location;
 import ru.practicum.location.repository.LocationRepository;
 import ru.practicum.request.dto.RequestDto;
 import ru.practicum.request.dto.RequestUpdateResultDto;
