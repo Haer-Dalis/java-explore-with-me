@@ -39,26 +39,33 @@ public class PublicEventServiceImpl implements PublicEventService {
     public List<EventShortDto> getEvents(String text, List<Long> categories, Boolean paid, String rangeStart,
                                          String rangeEnd, Boolean onlyAvailable, String sort, Integer from,
                                          Integer size, HttpServletRequest request) {
-        Pageable pageable = (sort != null)
-                ? PageRequest.of(from > 0 ? from / size : 0, size,
-                Sort.by(sort.equals(SortType.EVENT_DATE.name()) ? "eventDate" : "views").descending())
-                : PageRequest.of(from > 0 ? from / size : 0, size);
-
-        LocalDateTime startDate = rangeStart != null
-                ? LocalDateTime.parse(URLDecoder.decode(rangeStart, StandardCharsets.UTF_8), Constants.DATE_TIME_FORMATTER)
-                : LocalDateTime.now();
-
-        LocalDateTime endDate = rangeEnd != null
-                ? LocalDateTime.parse(URLDecoder.decode(rangeEnd, StandardCharsets.UTF_8), Constants.DATE_TIME_FORMATTER)
-                : LocalDateTime.MAX;
-
-        if (endDate.isBefore(startDate)) {
-            throw new ValidationException("Дата окончания не может быть раньше даты начала");
+        Pageable pageable;
+        if (sort != null) {
+            String sortField = sort.equals(SortType.EVENT_DATE.name()) ? "eventDate" : "views";
+            pageable = PageRequest.of(from > 0 ? from / size : 0, size, Sort.by(sortField).descending());
+        } else {
+            pageable = PageRequest.of(from > 0 ? from / size : 0, size);
         }
-
-        List<Event> events = eventRepository.findAllEvents(
-                text, categories, paid, startDate, endDate, onlyAvailable != null && onlyAvailable, pageable
-        );
+        LocalDateTime startDate = rangeStart != null
+                ? LocalDateTime.parse(URLDecoder.decode(rangeStart, StandardCharsets.UTF_8),
+                Constants.DATE_TIME_FORMATTER)
+                : LocalDateTime.now();
+        LocalDateTime endDate = null;
+        if (rangeEnd != null) {
+            endDate = LocalDateTime.parse(URLDecoder.decode(rangeEnd, StandardCharsets.UTF_8),
+                    Constants.DATE_TIME_FORMATTER);
+        }
+        List<Event> events;
+        if (endDate != null) {
+            if (endDate.isBefore(startDate) || endDate.equals(startDate)) {
+                throw new ValidationException("Даты не могут быть равны или дата окончания не может быть раньше даты начала");
+            }
+            events = eventRepository.findAllPublishedEventsByFilterAndPeriod(text, categories, paid, startDate, endDate,
+                    onlyAvailable, pageable);
+        } else {
+            events = eventRepository.findAllPublishedEventsByFilterAndRangeStart(text, categories, paid, startDate,
+                    onlyAvailable, pageable);
+        }
 
         statsClient.createHit(hitService.createHitDto(request));
         return events.stream()
@@ -87,3 +94,4 @@ public class PublicEventServiceImpl implements PublicEventService {
         return EventMapper.toEventDto(event);
     }
 }
+
