@@ -177,17 +177,18 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/users/137/comments/1",
+          "raw": "http://localhost:8080/comments/user/137/event/107",
           "protocol": "http",
           "host": [
             "localhost"
           ],
           "port": "8080",
           "path": [
-            "users",
-            "137",
             "comments",
-            "1"
+            "user",
+            "137",
+            "event",
+            "107"
           ]
         }
       },
