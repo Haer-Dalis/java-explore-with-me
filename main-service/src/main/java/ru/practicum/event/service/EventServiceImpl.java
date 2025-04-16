@@ -99,7 +99,6 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getAllByUser(Long userId, Integer from, Integer size) {
-        log.info("Вызван getEventsByUserId с параметрами: userId={}, from={}, size={}", userId, from, size);
 
         checkExistUser(userId);
         Pageable pageable = PageRequest.of(Math.max(0, from / size), size);

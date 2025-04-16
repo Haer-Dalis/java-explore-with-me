@@ -42,14 +42,7 @@ public class AdminEventServiceImpl implements AdminEventService {
             validateDateRange(start, end);
         }
 
-        List<Event> events = eventRepository.findAllEventsByFilter(
-                users.isEmpty() ? null : users,
-                states.isEmpty() ? null : states,
-                categories.isEmpty() ? null : categories,
-                start,
-                end,
-                pageable
-        );
+        List<Event> events = eventRepository.findAdminEvents(users, states, categories, start, end, pageable);
 
         return events.stream()
                 .map(EventMapper::toEventDto)
@@ -78,11 +71,14 @@ public class AdminEventServiceImpl implements AdminEventService {
         }
 
         Category category = resolveCategory(updateEventDto.getCategory(), event.getCategory());
-        event = eventRepository.save(EventMapper.toUpdatedEvent(updateEventDto, category, event));
 
-        return EventMapper.toEventDto(event);
+        Event updatedEvent = EventMapper.toUpdatedEvent(updateEventDto, category, event);
+        eventRepository.save(updatedEvent);
+
+        return EventMapper.toEventDto(updatedEvent);
     }
 
+    // Вспомогательные методы остаются без изменений
     private LocalDateTime parseDate(String dateStr) {
         if (dateStr == null) return null;
         return LocalDateTime.parse(URLDecoder.decode(dateStr, StandardCharsets.UTF_8), Constants.DATE_TIME_FORMATTER);

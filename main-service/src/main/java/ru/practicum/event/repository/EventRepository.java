@@ -17,20 +17,22 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findByInitiatorId(Long userId, Pageable pageable);
 
-    @Query("SELECT e FROM Event e " +
-            "WHERE (:users IS NULL OR e.initiator.id IN :users) " +
-            "AND (:states IS NULL OR e.state IN :states) " +
-            "AND (:categories IS NULL OR e.category.id IN :categories) " +
-            "AND (:rangeStart IS NULL OR e.eventDate >= :rangeStart) " +
-            "AND (:rangeEnd IS NULL OR e.eventDate <= :rangeEnd) " +
-            "ORDER BY e.eventDate DESC")
-    List<Event> findAllEventsByFilter(
-            @Param("users") List<Long> users,
-            @Param("states") List<State> states,
-            @Param("categories") List<Long> categories,
-            @Param("rangeStart") LocalDateTime rangeStart,
-            @Param("rangeEnd") LocalDateTime rangeEnd,
-            Pageable pageable);
+    @Query("""
+           SELECT e
+           FROM Event AS e
+           WHERE (:users IS NULL OR e.initiator.id IN :users)
+           AND (:states IS NULL OR e.state IN :states)
+           AND (:categories IS NULL OR e.category.id IN :categories)
+           AND (:rangeStart IS NULL OR e.eventDate >= :rangeStart)
+           AND (:rangeEnd IS NULL OR e.eventDate <= :rangeEnd)
+           ORDER BY e.eventDate DESC
+           """)
+    List<Event> findAdminEvents(@Param("users") List<Long> users,
+                                @Param("states") List<State> states,
+                                @Param("categories") List<Long> categories,
+                                @Param("rangeStart") LocalDateTime rangeStart,
+                                @Param("rangeEnd") LocalDateTime rangeEnd,
+                                Pageable pageable);
 
     @Query("SELECT e FROM Event e " +
             "WHERE (:text IS NULL OR (e.annotation ILIKE %:text% OR e.description ILIKE %:text%)) " +
