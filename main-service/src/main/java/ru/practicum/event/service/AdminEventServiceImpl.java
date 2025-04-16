@@ -42,17 +42,14 @@ public class AdminEventServiceImpl implements AdminEventService {
             validateDateRange(start, end);
         }
 
-        List<Event> events;
-
-        if (start != null && end != null) {
-            events = eventRepository.findAllEventsByFilterAndPeriod(users, states, categories, start, end, pageable);
-        } else if (start != null) {
-            events = eventRepository.findAllEventsByFilterAndRangeStart(users, states, categories, start, pageable);
-        } else if (end != null) {
-            events = eventRepository.findAllEventsByFilterAndRangeEnd(users, states, categories, end, pageable);
-        } else {
-            events = eventRepository.findAllByParams(users, states, categories, pageable);
-        }
+        List<Event> events = eventRepository.findAllEventsByFilter(
+                users.isEmpty() ? null : users,
+                states.isEmpty() ? null : states,
+                categories.isEmpty() ? null : categories,
+                start,
+                end,
+                pageable
+        );
 
         return events.stream()
                 .map(EventMapper::toEventDto)

@@ -17,51 +17,20 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findByInitiatorId(Long userId, Pageable pageable);
 
-    @Query("""
-            select e
-            from Event as e
-            where (?1 is null or e.initiator.id in ?1)
-            and (?2 is null or e.state in ?2)
-            and (?3 is null or e.category.id in ?3)
-            and e.eventDate between ?4 and ?5
-            order by e.eventDate desc
-            """)
-    List<Event> findAllEventsByFilterAndPeriod(List<Long> users, List<State> states, List<Long> categories,
-                                               LocalDateTime rangeStart, LocalDateTime rangeEnd, Pageable pageable);
-
-    @Query("""
-            select e
-            from Event as e
-            where (?1 is null or e.initiator.id in ?1)
-            and (?2 is null or e.state in ?2)
-            and (?3 is null or e.category.id in ?3)
-            and e.eventDate >= ?4
-            order by e.eventDate desc
-            """)
-    List<Event> findAllEventsByFilterAndRangeStart(List<Long> users, List<State> states, List<Long> categories,
-                                                   LocalDateTime rangeStart, Pageable pageable);
-
-    @Query("""
-            select e
-            from Event as e
-            where (?1 is null or e.initiator.id in ?1)
-            and (?2 is null or e.state in ?2)
-            and (?3 is null or e.category.id in ?3)
-            and e.eventDate <= ?4
-            order by e.eventDate desc
-            """)
-    List<Event> findAllEventsByFilterAndRangeEnd(List<Long> users, List<State> states, List<Long> categories,
-                                                 LocalDateTime rangeEnd, Pageable pageable);
-
-    @Query("""
-            select e
-            from Event as e
-            where (?1 is null or e.initiator.id in ?1)
-            and (?2 is null or e.state in ?2)
-            and (?3 is null or e.category.id in ?3)
-            order by e.eventDate desc
-            """)
-    List<Event> findAllByParams(List<Long> users, List<State> states, List<Long> categories, Pageable pageable);
+    @Query("SELECT e FROM Event e " +
+            "WHERE (:users IS NULL OR e.initiator.id IN :users) " +
+            "AND (:states IS NULL OR e.state IN :states) " +
+            "AND (:categories IS NULL OR e.category.id IN :categories) " +
+            "AND (:rangeStart IS NULL OR e.eventDate >= :rangeStart) " +
+            "AND (:rangeEnd IS NULL OR e.eventDate <= :rangeEnd) " +
+            "ORDER BY e.eventDate DESC")
+    List<Event> findAllEventsByFilter(
+            @Param("users") List<Long> users,
+            @Param("states") List<State> states,
+            @Param("categories") List<Long> categories,
+            @Param("rangeStart") LocalDateTime rangeStart,
+            @Param("rangeEnd") LocalDateTime rangeEnd,
+            Pageable pageable);
 
     @Query("SELECT e FROM Event e " +
             "WHERE (:text IS NULL OR (e.annotation ILIKE %:text% OR e.description ILIKE %:text%)) " +
