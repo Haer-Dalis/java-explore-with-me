@@ -17,8 +17,8 @@ import ru.practicum.additions.Constants;
 import ru.practicum.event.dto.EventDto;
 import ru.practicum.event.dto.EventRequestUpdate;
 import ru.practicum.event.dto.EventShortDto;
-import ru.practicum.event.dto.NewEventDto;
-import ru.practicum.event.dto.UpdateEventDto;
+import ru.practicum.event.dto.EventNewDto;
+import ru.practicum.event.dto.EventUpdateDto;
 import ru.practicum.event.service.EventService;
 import ru.practicum.request.dto.RequestDto;
 import ru.practicum.request.dto.RequestUpdateResultDto;
@@ -35,15 +35,15 @@ public class EventController {
     @PostMapping("/{userId}/events")
     @ResponseStatus(HttpStatus.CREATED)
     public EventDto addEvent(@PathVariable("userId") Long id,
-                             @RequestBody @Valid NewEventDto newEventDto) {
-        return eventService.addEvent(id, newEventDto);
+                             @RequestBody @Valid EventNewDto eventNewDto) {
+        return eventService.addEvent(id, eventNewDto);
     }
 
     @PatchMapping("/{userId}/events/{eventId}")
     public EventDto updateEvent(@PathVariable("userId") Long id,
                                 @PathVariable("eventId") Long eventId,
-                                @RequestBody @Valid UpdateEventDto updateEventDto) {
-        return eventService.updateEvent(id, eventId, updateEventDto);
+                                @RequestBody @Valid EventUpdateDto eventUpdateDto) {
+        return eventService.updateEvent(id, eventId, eventUpdateDto);
     }
 
     @GetMapping("/{userId}/events")

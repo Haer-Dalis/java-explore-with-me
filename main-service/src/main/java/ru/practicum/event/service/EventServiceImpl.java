@@ -11,9 +11,9 @@ import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.event.dto.EventDto;
 import ru.practicum.event.dto.EventRequestUpdate;
 import ru.practicum.event.dto.EventShortDto;
-import ru.practicum.event.dto.NewEventDto;
+import ru.practicum.event.dto.EventNewDto;
 import ru.practicum.event.dto.State;
-import ru.practicum.event.dto.UpdateEventDto;
+import ru.practicum.event.dto.EventUpdateDto;
 import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
@@ -46,15 +46,15 @@ public class EventServiceImpl implements EventService {
     private final LocationRepository locationRepository;
 
     @Override
-    public EventDto addEvent(Long userId, NewEventDto newEventDto) {
-        checkTime(newEventDto.getEventDate());
+    public EventDto addEvent(Long userId, EventNewDto eventNewDto) {
+        checkTime(eventNewDto.getEventDate());
 
         Event event = EventMapper.toEvent(
                 userRepository.findById(userId)
                         .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не обнаружен")),
-                getCategory(newEventDto.getCategory()),
-                newEventDto,
-                locationRepository.save(LocationMapper.toLocation(newEventDto.getLocation()))
+                getCategory(eventNewDto.getCategory()),
+                eventNewDto,
+                locationRepository.save(LocationMapper.toLocation(eventNewDto.getLocation()))
         );
         event.setState(State.PENDING);
 
@@ -62,22 +62,22 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventDto updateEvent(Long userId, Long eventId, UpdateEventDto updateEventDto) {
+    public EventDto updateEvent(Long userId, Long eventId, EventUpdateDto eventUpdateDto) {
         Event event = getEventByIdAndInitiator(eventId, userId);
 
         if (event.getState() == State.PUBLISHED) {
             throw new ConflictException("События можно изменять в статусах PENDING или CANCELED");
         }
-        if (updateEventDto.getEventDate() != null) {
-            checkTime(updateEventDto.getEventDate());
+        if (eventUpdateDto.getEventDate() != null) {
+            checkTime(eventUpdateDto.getEventDate());
         }
 
-        Category category = updateEventDto.getCategory() != null
-                ? getCategory(updateEventDto.getCategory())
+        Category category = eventUpdateDto.getCategory() != null
+                ? getCategory(eventUpdateDto.getCategory())
                 : event.getCategory();
 
         return EventMapper.toEventDto(
-                eventRepository.save(EventMapper.toUpdatedEvent(updateEventDto, category, event))
+                eventRepository.save(EventMapper.toUpdatedEvent(eventUpdateDto, category, event))
         );
     }
 
