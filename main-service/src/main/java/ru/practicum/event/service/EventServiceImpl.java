@@ -51,7 +51,8 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDto addEvent(Long userId, NewEventDto newEventDto) {
         checkDateTime(newEventDto.getEventDate());
-        User user = getUserById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не найден"));
         Category category = getCategoryById(newEventDto.getCategory());
         Location location = locationRepository.save(LocationMapper.toLocation(newEventDto.getLocation()));
 
@@ -189,11 +190,6 @@ public class EventServiceImpl implements EventService {
         return requests.stream()
                 .map(RequestMapper::toRequestDto)
                 .collect(Collectors.toList());
-    }
-
-    private User getUserById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id " + id + " не найден"));
     }
 
     private Category getCategoryById(Long id) {
