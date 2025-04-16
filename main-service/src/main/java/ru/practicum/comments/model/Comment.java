@@ -1,9 +1,8 @@
-package ru.practicum.request.model;
+package ru.practicum.comments.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,39 +12,38 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import ru.practicum.event.model.Event;
-import ru.practicum.request.dto.Status;
 import ru.practicum.user.model.User;
 
 import java.time.LocalDateTime;
 
-@Setter
-@Getter
+import static ru.practicum.additions.Constants.DATE_TIME_PATTERN;
+
+@Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Entity
-@Table(name = "requests")
-public class Request {
+@Table(name = "comments")
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id")
-    private Event event;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "requester_id")
-    private User requester;
+    @JoinColumn(name = "event_id", nullable = false)
+    Event event;
+
+    @Column(name = "message", nullable = false)
+    String message;
 
     @Column(name = "created")
+    @JsonFormat(pattern = DATE_TIME_PATTERN)
     private LocalDateTime created;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private Status status;
 }

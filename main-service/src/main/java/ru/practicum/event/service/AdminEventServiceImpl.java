@@ -42,17 +42,7 @@ public class AdminEventServiceImpl implements AdminEventService {
             validateDateRange(start, end);
         }
 
-        List<Event> events;
-
-        if (start != null && end != null) {
-            events = eventRepository.findAllEventsByFilterAndPeriod(users, states, categories, start, end, pageable);
-        } else if (start != null) {
-            events = eventRepository.findAllEventsByFilterAndRangeStart(users, states, categories, start, pageable);
-        } else if (end != null) {
-            events = eventRepository.findAllEventsByFilterAndRangeEnd(users, states, categories, end, pageable);
-        } else {
-            events = eventRepository.findAllByParams(users, states, categories, pageable);
-        }
+        List<Event> events = eventRepository.findAdminFilteredEvents(users, states, categories, start, end, pageable);
 
         return events.stream()
                 .map(EventMapper::toEventDto)
@@ -65,7 +55,7 @@ public class AdminEventServiceImpl implements AdminEventService {
                 .orElseThrow(() -> new NotFoundException("Событие с id = " + eventId + " не обнаружено"));
 
         if (!event.getState().equals(State.PENDING)) {
-            throw new ConflictException("Событие должно быть в ином состоянии");
+            throw new ConflictException("Событие должно быть в состоянии ожидания");
         }
 
         if (updateEventDto.getEventDate() != null) {
@@ -99,7 +89,7 @@ public class AdminEventServiceImpl implements AdminEventService {
 
     private void validateEventDate(LocalDateTime eventDate) {
         if (eventDate.isBefore(LocalDateTime.now().plusHours(1))) {
-            throw new ConflictException("Дата начала события должна быть не ранее чем за час от текущего времени");
+            throw new ConflictException("Дата события должна быть минимум через час");
         }
     }
 

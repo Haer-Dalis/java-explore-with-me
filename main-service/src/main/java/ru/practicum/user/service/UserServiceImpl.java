@@ -19,26 +19,47 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDto createUser(UserDto userDto) {
-        if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
-            throw new ConflictException("Пользователь с таким email " + userDto.getEmail() + " уже уществует");
+    public UserDto addUser(UserDto userDto) {
+        String email = userDto.getEmail();
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new ConflictException("Пользователь с таким email " + email + " уже существует");
         }
-        return UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)));
+
+        User user = UserMapper.toUser(userDto);
+        User savedUser = userRepository.save(user);
+        return mapToDto(savedUser);
     }
 
     @Override
     public void deleteUser(Long id) {
-        userRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Пользователь с id " + id + " не обнаружен"));
+        if (!userRepository.existsById(id)) {
+            throw new NotFoundException("Пользователь с id " + id + " не обнаружен");
+        }
         userRepository.deleteById(id);
     }
 
     @Override
-    public List<UserDto> getUsersByIds(List<Long> ids, Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(from > 0 ? from / size : 0, size);
-        List<User> users = userRepository.findUserByIds(ids, pageable);
+    public List<UserDto> getUsers(List<Long> ids, Integer from, Integer size) {
+        int page = calculatePage(from, size);
+        Pageable pageable = PageRequest.of(page, size);
+
+        List<User> users;
+        if (ids == null || ids.isEmpty()) {
+            users = userRepository.findAll(pageable).getContent();
+        } else {
+            users = userRepository.findAllByIdIn(ids, pageable);
+        }
+
         return users.stream()
-                .map(UserMapper::toUserDto)
+                .map(this::mapToDto)
                 .toList();
+    }
+
+    private int calculatePage(Integer from, Integer size) {
+        return (from != null && size != null && from > 0) ? from / size : 0; //провер. на null
+    }
+
+    private UserDto mapToDto(User user) {
+        return UserMapper.toUserDto(user);
     }
 }

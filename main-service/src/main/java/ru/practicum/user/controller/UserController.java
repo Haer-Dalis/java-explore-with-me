@@ -28,8 +28,8 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@RequestBody @Valid UserDto userDto) {
-        return userService.createUser(userDto);
+    public UserDto addUser(@RequestBody @Valid UserDto userDto) {
+        return userService.addUser(userDto);
     }
 
     @DeleteMapping("/{userId}")
@@ -39,9 +39,9 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserDto> getUsersByIds(@RequestParam(required = false) List<Long> ids,
-                                       @RequestParam(defaultValue = Constants.DEFAULT_FROM) Integer from,
-                                       @RequestParam(defaultValue = Constants.DEFAULT_SIZE) Integer size) {
-        return userService.getUsersByIds(ids, from, size);
+    public List<UserDto> getUsers(@RequestParam(required = false) List<Long> ids,
+                                  @RequestParam(defaultValue = Constants.DEFAULT_FROM) Integer from,
+                                  @RequestParam(defaultValue = Constants.DEFAULT_SIZE) Integer size) {
+        return userService.getUsers(ids, from, size);
     }
 }

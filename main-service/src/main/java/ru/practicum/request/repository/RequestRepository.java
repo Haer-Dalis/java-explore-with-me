@@ -9,9 +9,9 @@ import java.util.List;
 
 @Repository
 public interface RequestRepository extends JpaRepository<Request, Long> {
-    Boolean existsByRequesterIdAndEventId(Long id, Long eventId);
-
     List<Request> findAllByRequesterId(Long id, Sort sort);
+
+    Boolean existsByRequesterIdAndEventId(Long id, Long eventId);
 
     List<Request> findRequestsByEventId(Long eventId, Sort sort);
 }

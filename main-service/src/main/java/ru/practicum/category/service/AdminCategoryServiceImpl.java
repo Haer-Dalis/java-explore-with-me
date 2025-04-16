@@ -3,7 +3,7 @@ package ru.practicum.category.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.category.dto.CategoryDto;
-import ru.practicum.category.dto.CategoryRequest;
+import ru.practicum.category.dto.CategoryRequestDto;
 import ru.practicum.category.mapper.CategoryMapper;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
@@ -13,19 +13,19 @@ import ru.practicum.exception.NotFoundException;
 
 @Service
 @AllArgsConstructor
-public class CategoryServiceImpl implements CategoryService {
+public class AdminCategoryServiceImpl implements AdminCategoryService {
     private final CategoryRepository categoryRepository;
     private final EventRepository eventRepository;
 
     @Override
-    public CategoryDto addCategory(CategoryRequest request) {
+    public CategoryDto addCategory(CategoryRequestDto request) {
         checkNameConflict(request.getName());
         Category category = CategoryMapper.toCategory(request);
         return CategoryMapper.toCategoryDto(categoryRepository.save(category));
     }
 
     @Override
-    public CategoryDto updateCategory(Long id, CategoryRequest request) {
+    public CategoryDto updateCategory(Long id, CategoryRequestDto request) {
         Category category = getCategoryById(id);
 
         String newName = request.getName();

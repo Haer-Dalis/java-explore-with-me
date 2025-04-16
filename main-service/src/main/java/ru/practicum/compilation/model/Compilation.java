@@ -1,5 +1,6 @@
 package ru.practicum.compilation.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
@@ -30,13 +31,15 @@ public class Compilation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "pinned", nullable = false)
     private Boolean pinned;
 
+    @Column(name = "title", nullable = false, length = 50)
     private String title;
 
     @ManyToMany()
     @JoinTable(
-            name = "event_compilation",
+            name = "compilations_events",
             joinColumns = {@JoinColumn(name = "compilation_id")},
             inverseJoinColumns = {@JoinColumn(name = "event_id")}
     )

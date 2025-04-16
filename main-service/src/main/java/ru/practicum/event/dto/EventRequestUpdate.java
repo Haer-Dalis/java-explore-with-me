@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class EventRequestStatus {
+public class EventRequestUpdate {
     @NotNull
     private Status status;
 

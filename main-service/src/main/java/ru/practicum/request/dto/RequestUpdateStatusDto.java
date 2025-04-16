@@ -13,7 +13,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ResultRequestStatusDto {
-    private List<RequestDto> confirmedRequests;
-    private List<RequestDto> rejectedRequests;
+public class RequestUpdateStatusDto {
+    private Status status;
+    private List<Long> requestIds;
 }
+

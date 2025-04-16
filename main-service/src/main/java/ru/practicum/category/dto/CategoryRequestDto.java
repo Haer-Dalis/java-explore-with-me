@@ -13,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CategoryRequest {
+public class CategoryRequestDto {
     @NotBlank
     @Size(min = 1, max = 50)
     private String name;

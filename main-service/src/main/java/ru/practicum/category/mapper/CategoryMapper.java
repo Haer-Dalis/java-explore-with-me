@@ -2,7 +2,7 @@ package ru.practicum.category.mapper;
 
 import lombok.experimental.UtilityClass;
 import ru.practicum.category.dto.CategoryDto;
-import ru.practicum.category.dto.CategoryRequest;
+import ru.practicum.category.dto.CategoryRequestDto;
 import ru.practicum.category.model.Category;
 
 @UtilityClass
@@ -14,9 +14,9 @@ public class CategoryMapper {
                 .build();
     }
 
-    public static Category toCategory(CategoryRequest categoryRequest) {
+    public static Category toCategory(CategoryRequestDto categoryRequestDto) {
         return Category.builder()
-                .name(categoryRequest.getName())
+                .name(categoryRequestDto.getName())
                 .build();
     }
 }
