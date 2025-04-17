@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private int calculatePage(Integer from, Integer size) {
-        return (from != null && size != null && from > 0) ? from / size : 0; //провер. на null
+        return (from != null && size != null && from > 0) ? from / size : 0;
     }
 
     private UserDto mapToDto(User user) {

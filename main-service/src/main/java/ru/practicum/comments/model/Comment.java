@@ -12,8 +12,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.practicum.event.model.Event;
 import ru.practicum.user.model.User;
 
@@ -21,7 +22,8 @@ import java.time.LocalDateTime;
 
 import static ru.practicum.additions.Constants.DATE_TIME_PATTERN;
 
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -38,10 +40,10 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)
-    Event event;
+    private Event event;
 
     @Column(name = "message", nullable = false)
-    String message;
+    private String message;
 
     @Column(name = "created")
     @JsonFormat(pattern = DATE_TIME_PATTERN)

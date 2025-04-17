@@ -48,8 +48,7 @@ public class CommentsServiceImpl implements CommentsService {
 
     @Override
     public CommentDto updateCommentDto(Long userId, Long commentId, CommentImportDto commentImportDto) {
-        Comment updatingComment = commentsRepository.findById(commentId)
-                .orElseThrow(() -> new NotFoundException("Комментарий не найден: " + commentId));
+        Comment updatingComment = getComment(commentId);
         validateOwnership(updatingComment.getUser().getId(), userId);
         Optional.ofNullable(commentImportDto.getMessage()).ifPresent(updatingComment::setMessage);
         return CommentMapper.toCommentDto(commentsRepository.save(updatingComment));
@@ -57,16 +56,14 @@ public class CommentsServiceImpl implements CommentsService {
 
     @Override
     public void deleteComment(Long userId, Long commentId) {
-        Comment deletedComment = commentsRepository.findById(commentId)
-                .orElseThrow(() -> new NotFoundException("Комментарий не найден: " + commentId));
+        Comment deletedComment = getComment(commentId);
         validateOwnership(deletedComment.getUser().getId(), userId);
         commentsRepository.deleteById(commentId);
     }
 
     @Override
     public void adminDelete(Long commentId) {
-        commentsRepository.deleteById(commentsRepository.findById(commentId)
-                .orElseThrow(() -> new NotFoundException("Комментарий не найден: " + commentId)).getId());
+        commentsRepository.deleteById(getComment(commentId).getId());
     }
 
     @Override
@@ -129,5 +126,10 @@ public class CommentsServiceImpl implements CommentsService {
 
     private LocalDateTime parseDate(String date) {
         return date == null ? null : LocalDateTime.parse(date, DATE_TIME_FORMATTER);
+    }
+
+    private Comment getComment(Long commentId) {
+        return commentsRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Комментарий не найден: " + commentId));
     }
 }

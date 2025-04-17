@@ -83,7 +83,6 @@ public class AdminEventServiceImpl implements AdminEventService {
         return EventMapper.toEventDto(updatedEvent);
     }
 
-    // Вспомогательные методы остаются без изменений
     private LocalDateTime parseDate(String dateStr) {
         if (dateStr == null) return null;
         return LocalDateTime.parse(URLDecoder.decode(dateStr, StandardCharsets.UTF_8), Constants.DATE_TIME_FORMATTER);
