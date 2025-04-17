@@ -41,13 +41,13 @@ public class StatsServiceImpl implements StatsService {
 
         if (uris != null && !uris.isEmpty()) {
             return isUnique
-                    ? statsRepository.findUniqueIpStatsByUrisBetween(startTime, endTime, uris)
-                    : statsRepository.findAllStatsByUrisBetween(startTime, endTime, uris);
+                    ? statsRepository.getUniqueVisitorStatsByUriAndTime(startTime, endTime, uris)
+                    : statsRepository.getTotalRequestStatsByUriAndTime(startTime, endTime, uris);
         }
 
         return isUnique
-                ? statsRepository.findUniqueIpStatsBetween(startTime, endTime)
-                : statsRepository.findAllStatsBetween(startTime, endTime);
+                ? statsRepository.getStatsForAllUrisWithUniqueIps(startTime, endTime)
+                : statsRepository.getTotalRequestStatsByTime(startTime, endTime);
     }
 
     private LocalDateTime parseDateTime(String dateStr) {

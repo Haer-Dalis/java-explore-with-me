@@ -18,7 +18,7 @@ public interface StatsRepository extends JpaRepository<Hit, Long> {
             "WHERE h.timestamp BETWEEN :start AND :end AND (:uris IS NULL OR h.uri IN :uris) " +
             "GROUP BY h.app, h.uri " +
             "ORDER BY COUNT(DISTINCT h.ip) DESC")
-    List<StatsDto> findUniqueIpStatsByUrisBetween(@Param("start") LocalDateTime start,
+    List<StatsDto> getUniqueVisitorStatsByUriAndTime(@Param("start") LocalDateTime start,
                                                 @Param("end") LocalDateTime end,
                                                 @Param("uris") List<String> uris);
 
@@ -27,23 +27,23 @@ public interface StatsRepository extends JpaRepository<Hit, Long> {
             "WHERE h.timestamp BETWEEN :start AND :end AND (:uris IS NULL OR h.uri IN :uris) " +
             "GROUP BY h.app, h.uri " +
             "ORDER BY COUNT(h.ip) DESC")
-    List<StatsDto> findAllStatsByUrisBetween(@Param("start") LocalDateTime start,
-                                        @Param("end") LocalDateTime end,
-                                        @Param("uris") List<String> uris);
+    List<StatsDto> getTotalRequestStatsByUriAndTime(@Param("start") LocalDateTime start,
+                                                    @Param("end") LocalDateTime end,
+                                                    @Param("uris") List<String> uris);
 
     @Query("SELECT new ru.practicum.StatsDto(h.app, h.uri, COUNT(DISTINCT h.ip)) " +
             "FROM Hit AS h " +
             "WHERE h.timestamp BETWEEN :start AND :end " +
             "GROUP BY h.app, h.uri " +
             "ORDER BY COUNT(DISTINCT h.ip) DESC")
-    List<StatsDto> findUniqueIpStatsBetween(@Param("start") LocalDateTime start,
-                                            @Param("end") LocalDateTime end);
+    List<StatsDto> getStatsForAllUrisWithUniqueIps(@Param("start") LocalDateTime start,
+                                                    @Param("end") LocalDateTime end);
 
     @Query("SELECT new ru.practicum.StatsDto(h.app, h.uri, COUNT(h.ip)) " +
             "FROM Hit AS h " +
             "WHERE h.timestamp BETWEEN :start AND :end " +
             "GROUP BY h.app, h.uri " +
             "ORDER BY COUNT(h.ip) DESC")
-    List<StatsDto> findAllStatsBetween(@Param("start") LocalDateTime start,
-                                        @Param("end") LocalDateTime end);
+    List<StatsDto> getTotalRequestStatsByTime(@Param("start") LocalDateTime start,
+                                                @Param("end") LocalDateTime end);
 }
