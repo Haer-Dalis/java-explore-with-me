@@ -21,12 +21,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NewEventDto {
-    @NotBlank
+public class EventNewDto {
+    @NotBlank(message = "аннотация не может быть только из пробелов")
     @Size(min = 20, max = 2000)
     private String annotation;
 
-    @NotBlank
+    @NotBlank(message = "описание не может быть только из пробелов")
     @Size(min = 20, max = 7000)
     private String description;
 
@@ -37,7 +37,7 @@ public class NewEventDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Constants.DATE_TIME_PATTERN)
     private LocalDateTime eventDate;
 
-    @NotNull
+    @NotNull(message = "место не может быть пустым")
     private LocationDto location;
 
     private Boolean paid;
@@ -47,7 +47,7 @@ public class NewEventDto {
 
     private Boolean requestModeration;
 
-    @NotBlank
+    @NotBlank(message = "название не должно быть пустым")
     @Size(min = 3, max = 120)
     private String title;
 }

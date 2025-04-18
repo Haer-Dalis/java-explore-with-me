@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.additions.Constants;
 import ru.practicum.event.dto.EventDto;
 import ru.practicum.event.dto.State;
-import ru.practicum.event.dto.UpdateEventDto;
+import ru.practicum.event.dto.EventUpdateDto;
 import ru.practicum.event.service.AdminEventService;
 
 import java.util.List;
@@ -36,7 +36,7 @@ public class AdminEventController {
 
     @PatchMapping("/{eventId}")
     public EventDto updateEventAdmin(@PathVariable("eventId") Long eventId,
-                                     @RequestBody @Valid UpdateEventDto updateEventDto) {
-        return adminEventService.updateEventAdmin(eventId, updateEventDto);
+                                     @RequestBody @Valid EventUpdateDto eventUpdateDto) {
+        return adminEventService.updateEventAdmin(eventId, eventUpdateDto);
     }
 }

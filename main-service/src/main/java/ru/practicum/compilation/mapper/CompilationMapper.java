@@ -11,7 +11,6 @@ import java.util.Set;
 
 @UtilityClass
 public class CompilationMapper {
-
     public static CompilationDto toCompilationDto(Compilation compilation) {
         return CompilationDto.builder()
                 .id(compilation.getId())

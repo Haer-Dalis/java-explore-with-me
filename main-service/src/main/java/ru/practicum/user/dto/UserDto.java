@@ -17,12 +17,12 @@ import lombok.Setter;
 public class UserDto {
     private Long id;
 
-    @NotBlank
     @Email
-    @Size(min = 6, max = 254)
+    @Size(min = 6, max = 254, message = "олжен быть от 6 до 254")
+    @NotBlank
     private String email;
 
-    @NotBlank
-    @Size(min = 2, max = 250)
+    @Size(min = 2, max = 250, message = "должно быть от 2 до 250")
+    @NotBlank(message = "имя не может быть пустым")
     private String name;
 }

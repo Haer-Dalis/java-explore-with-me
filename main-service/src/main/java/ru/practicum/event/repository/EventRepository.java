@@ -3,6 +3,7 @@ package ru.practicum.event.repository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.practicum.category.model.Category;
 import ru.practicum.event.dto.State;
@@ -17,78 +18,50 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByInitiatorId(Long userId, Pageable pageable);
 
     @Query("""
-            select e
-            from Event as e
-            where (?1 is null or e.initiator.id in ?1)
-            and (?2 is null or e.state in ?2)
-            and (?3 is null or e.category.id in ?3)
-            and e.eventDate between ?4 and ?5
-            order by e.eventDate desc
-            """)
-    List<Event> findAllEventsByFilterAndPeriod(List<Long> users, List<State> states, List<Long> categories,
-                                               LocalDateTime rangeStart, LocalDateTime rangeEnd, Pageable pageable);
+           SELECT e
+           FROM Event AS e
+           WHERE (:users IS NULL OR e.initiator.id IN :users)
+           AND (:states IS NULL OR e.state IN :states)
+           AND (:categories IS NULL OR e.category.id IN :categories)
+           AND e.eventDate >= :rangeStart
+           AND e.eventDate <= :rangeEnd
+           ORDER BY e.eventDate DESC
+           """)
+    List<Event> findAdminEvents(@Param("users") List<Long> users,
+                                @Param("states") List<State> states,
+                                @Param("categories") List<Long> categories,
+                                @Param("rangeStart") LocalDateTime rangeStart,
+                                @Param("rangeEnd") LocalDateTime rangeEnd,
+                                Pageable pageable);
 
-    @Query("""
-            select e
-            from Event as e
-            where (?1 is null or e.initiator.id in ?1)
-            and (?2 is null or e.state in ?2)
-            and (?3 is null or e.category.id in ?3)
-            and e.eventDate >= ?4
-            order by e.eventDate desc
-            """)
-    List<Event> findAllEventsByFilterAndRangeStart(List<Long> users, List<State> states, List<Long> categories,
-                                                   LocalDateTime rangeStart, Pageable pageable);
+    @Query("SELECT e FROM Event e " +
+            "WHERE (:text IS NULL OR (e.annotation ILIKE %:text% OR e.description ILIKE %:text%)) " +
+            "AND (:categories IS NULL OR e.category.id IN :categories) " +
+            "AND (:paid IS NULL OR e.paid = :paid) " +
+            "AND e.eventDate BETWEEN :rangeStart AND :rangeEnd " +
+            "AND (:onlyAvailable = FALSE OR e.confirmedRequests < e.participantLimit) " +
+            "AND e.state = 'PUBLISHED'")
+    List<Event> findPublishedEvents(@Param("text") String text,
+                                    @Param("categories") List<Long> categories,
+                                    @Param("paid") Boolean paid,
+                                    @Param("rangeStart") LocalDateTime rangeStart,
+                                    @Param("rangeEnd") LocalDateTime rangeEnd,
+                                    @Param("onlyAvailable") Boolean onlyAvailable,
+                                    Pageable pageable);
 
-    @Query("""
-            select e
-            from Event as e
-            where (?1 is null or e.initiator.id in ?1)
-            and (?2 is null or e.state in ?2)
-            and (?3 is null or e.category.id in ?3)
-            and e.eventDate <= ?4
-            order by e.eventDate desc
-            """)
-    List<Event> findAllEventsByFilterAndRangeEnd(List<Long> users, List<State> states, List<Long> categories,
-                                                 LocalDateTime rangeEnd, Pageable pageable);
-
-    @Query("""
-            select e
-            from Event as e
-            where (?1 is null or e.initiator.id in ?1)
-            and (?2 is null or e.state in ?2)
-            and (?3 is null or e.category.id in ?3)
-            order by e.eventDate desc
-            """)
-    List<Event> findAllByParams(List<Long> users, List<State> states, List<Long> categories, Pageable pageable);
-
-    @Query("""
-        select e
-        from Event as e
-        where (?1 is null or (e.annotation ilike %?1% or e.description ilike %?1%))
-        and (?2 is null or e.category.id in ?2)
-        and (?3 is null or e.paid = ?3)
-        and e.eventDate between ?4 and ?5
-        and (?6 = false or e.confirmedRequests < e.participantLimit)
-        and e.state = 'PUBLISHED'
-        """)
-    List<Event> findAllPublishedEventsByFilterAndPeriod(String text, List<Long> categories, Boolean paid,
-                                                        LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                                        Boolean onlyAvailable, Pageable pageable);
-
-    @Query("""
-            select e
-            from Event as e
-            where (?1 is null or (e.annotation ilike %?1% or e.description ilike %?1%))
-            and (?2 is null or e.category.id in ?2)
-            and (?3 is null or e.paid = ?3)
-            and e.eventDate >= ?4
-            and (?5 = false or e.confirmedRequests < e.participantLimit)
-            and e.state = 'PUBLISHED'
-            """)
-    List<Event> findAllPublishedEventsByFilterAndRangeStart(String text, List<Long> categories, Boolean paid,
-                                                            LocalDateTime rangeStart, Boolean onlyAvailable,
-                                                            Pageable pageable);
+    @Query("SELECT e FROM Event e " +
+            "WHERE (:text IS NULL OR (e.annotation ILIKE %:text% OR e.description ILIKE %:text%)) " +
+            "AND (:categories IS NULL OR e.category.id IN :categories) " +
+            "AND (:paid IS NULL OR e.paid = :paid) " +
+            "AND e.eventDate >= :rangeStart " +
+            "AND (:onlyAvailable = FALSE OR e.confirmedRequests < e.participantLimit) " +
+            "AND e.state = 'PUBLISHED'")
+    List<Event> findPublishedEvents(@Param("text") String text,
+                                    @Param("categories") List<Long> categories,
+                                    @Param("paid") Boolean paid,
+                                    @Param("rangeStart") LocalDateTime rangeStart,
+                                    @Param("onlyAvailable") Boolean onlyAvailable,
+                                    Pageable pageable);
 
     boolean existsByCategory(Category category);
 }

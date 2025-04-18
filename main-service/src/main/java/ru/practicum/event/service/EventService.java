@@ -1,27 +1,27 @@
 package ru.practicum.event.service;
 
 import ru.practicum.event.dto.EventDto;
-import ru.practicum.event.dto.EventRequestStatus;
+import ru.practicum.event.dto.EventRequestUpdate;
 import ru.practicum.event.dto.EventShortDto;
-import ru.practicum.event.dto.NewEventDto;
-import ru.practicum.event.dto.UpdateEventDto;
+import ru.practicum.event.dto.EventNewDto;
+import ru.practicum.event.dto.EventUpdateDto;
 import ru.practicum.request.dto.RequestDto;
-import ru.practicum.request.dto.ResultRequestStatusDto;
+import ru.practicum.request.dto.RequestUpdateResultDto;
 
 import java.util.List;
 
 public interface EventService {
 
-    EventDto addEvent(Long id, NewEventDto newEventDto);
+    EventDto addEvent(Long id, EventNewDto eventNewDto);
 
-    EventDto updateEvent(Long id, Long eventId, UpdateEventDto updateEventDto);
+    EventDto updateEvent(Long id, Long eventId, EventUpdateDto eventUpdateDto);
 
-    EventDto getEventByUserIdAndEventId(Long userId, Long eventId);
+    EventDto getByUserAndId(Long userId, Long eventId);
 
-    List<EventShortDto> getEventsByUserId(Long userId, Integer from, Integer size);
+    List<EventShortDto> getAllByUser(Long userId, Integer from, Integer size);
 
-    List<RequestDto> getRequestsByCurrentUserAndEventId(Long ownerId, Long eventId);
+    List<RequestDto> getRequestsByUser(Long ownerId, Long eventId);
 
-    ResultRequestStatusDto changeRequestByCurrentUserId(Long ownerId, Long eventId,
-                                                        EventRequestStatus eventRequestStatus);
+    RequestUpdateResultDto updateRequests(Long ownerId, Long eventId,
+                                          EventRequestUpdate eventRequestUpdate);
 }

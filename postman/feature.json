@@ -1,0 +1,429 @@
+{
+  "info": {
+    "_postman_id": "6627be9b-bd6d-48b9-b918-26a6826993e0",
+    "name": "feature testing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "25684939"
+  },
+  "item": [
+    {
+      "name": "Create User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"User created\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.environment.set(\"userId\", jsonData.id);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"john@example.com\",\r\n  \"name\": \"John Doe\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/admin/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "admin",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Category",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Category created\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.environment.set(\"categoryId\", jsonData.id);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Books\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/admin/categories",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "admin",
+            "categories"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New Event",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([201]);\r",
+              "});\r",
+              "pm.test(\"Response have body\", function () {\r",
+              "    pm.response.to.be.withBody;\r",
+              "    pm.response.to.be.json;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"annotation\": \"Обсуждение книг про единорогов\",\r\n  \"category\": 122,\r\n  \"description\": \"Встреча в целом не очень, но надо посетить\",\r\n  \"eventDate\": \"2025-04-20 12:00:00\",\r\n  \"location\": {\"lat\": 55.4424, \"lon\": -37.3636},\r\n  \"paid\": false,\r\n  \"participantLimit\": 5,\r\n  \"requestModeration\": false,\r\n  \"title\": \"Книги\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/users/137/events",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "users",
+            "137",
+            "events"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User 1 adds a comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([201]);\r",
+              "});\r",
+              "pm.test(\"Response have body\", function () {\r",
+              "    pm.response.to.be.withBody;\r",
+              "    pm.response.to.be.json;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"message\": \"Автора первой книги про единорогов забросают тухлыми помидорами\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/comments/user/137/event/107",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "comments",
+            "user",
+            "137",
+            "event",
+            "107"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User 1 adds another comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([201]);\r",
+              "});\r",
+              "pm.test(\"Response have body\", function () {\r",
+              "    pm.response.to.be.withBody;\r",
+              "    pm.response.to.be.json;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"message\": \"Автору второй книги подарили плюшевого единорога\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/comments/user/137/event/107",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "comments",
+            "user",
+            "137",
+            "event",
+            "107"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Getting a list of comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"В ответе ровно 2 комментария\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "    const json = pm.response.json();\r",
+              "    pm.expect(json.length).to.eql(2);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/comments/user/137?from=0&size=20",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "comments",
+            "user",
+            "137"
+          ],
+          "query": [
+            {
+              "key": "from",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "20"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Updating comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code should be 200 and response in JSON\", function() {\r",
+              "    pm.response.to.have.status(200);\r",
+              "    pm.response.to.be.withBody;\r",
+              "    pm.response.to.be.json;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"message\": \"Автор первой книги всё-таки смог уйти невредимым, что странно - пардон\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/comments/user/137/update/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "comments",
+            "user",
+            "137",
+            "update",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User deletes a comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Статус 204 коментарий удален\", function() {\r",
+              "    pm.response.to.have.status(204);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/comments/user/137/delete/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "comments",
+            "user",
+            "137",
+            "delete",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Comments by event",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"В списке комментариев для события только 1 комментарий\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "    const json = pm.response.json();\r",
+              "    pm.expect(json.length).to.eql(1);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/comments/user/137",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "comments",
+            "user",
+            "137"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

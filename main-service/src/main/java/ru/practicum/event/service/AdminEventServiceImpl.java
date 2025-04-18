@@ -10,7 +10,7 @@ import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.event.dto.EventDto;
 
 import ru.practicum.event.dto.State;
-import ru.practicum.event.dto.UpdateEventDto;
+import ru.practicum.event.dto.EventUpdateDto;
 import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
@@ -31,6 +31,8 @@ public class AdminEventServiceImpl implements AdminEventService {
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
 
+    private static final LocalDateTime MAX_DATE = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
+
     @Override
     public List<EventDto> getEvents(List<Long> users, List<State> states, List<Long> categories,
                                     String rangeStart, String rangeEnd, Integer from, Integer size) {
@@ -42,17 +44,10 @@ public class AdminEventServiceImpl implements AdminEventService {
             validateDateRange(start, end);
         }
 
-        List<Event> events;
+        LocalDateTime queryStart = (start != null) ? start : LocalDateTime.now();
+        LocalDateTime queryEnd = (end != null) ? end : MAX_DATE;
 
-        if (start != null && end != null) {
-            events = eventRepository.findAllEventsByFilterAndPeriod(users, states, categories, start, end, pageable);
-        } else if (start != null) {
-            events = eventRepository.findAllEventsByFilterAndRangeStart(users, states, categories, start, pageable);
-        } else if (end != null) {
-            events = eventRepository.findAllEventsByFilterAndRangeEnd(users, states, categories, end, pageable);
-        } else {
-            events = eventRepository.findAllByParams(users, states, categories, pageable);
-        }
+        List<Event> events = eventRepository.findAdminEvents(users, states, categories, queryStart, queryEnd, pageable);
 
         return events.stream()
                 .map(EventMapper::toEventDto)
@@ -60,7 +55,7 @@ public class AdminEventServiceImpl implements AdminEventService {
     }
 
     @Override
-    public EventDto updateEventAdmin(Long eventId, UpdateEventDto updateEventDto) {
+    public EventDto updateEventAdmin(Long eventId, EventUpdateDto eventUpdateDto) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие с id = " + eventId + " не обнаружено"));
 
@@ -68,22 +63,24 @@ public class AdminEventServiceImpl implements AdminEventService {
             throw new ConflictException("Событие должно быть в ином состоянии");
         }
 
-        if (updateEventDto.getEventDate() != null) {
-            validateEventDate(updateEventDto.getEventDate());
+        if (eventUpdateDto.getEventDate() != null) {
+            validateEventDate(eventUpdateDto.getEventDate());
         }
 
-        if (updateEventDto.getLocation() != null) {
-            Location location = updateEventDto.getLocation();
+        if (eventUpdateDto.getLocation() != null) {
+            Location location = eventUpdateDto.getLocation();
             if (location.getId() == null) {
                 location = locationRepository.save(location);
             }
             event.setLocation(location);
         }
 
-        Category category = resolveCategory(updateEventDto.getCategory(), event.getCategory());
-        event = eventRepository.save(EventMapper.toUpdatedEvent(updateEventDto, category, event));
+        Category category = resolveCategory(eventUpdateDto.getCategory(), event.getCategory());
 
-        return EventMapper.toEventDto(event);
+        Event updatedEvent = EventMapper.toUpdatedEvent(eventUpdateDto, category, event);
+        eventRepository.save(updatedEvent);
+
+        return EventMapper.toEventDto(updatedEvent);
     }
 
     private LocalDateTime parseDate(String dateStr) {

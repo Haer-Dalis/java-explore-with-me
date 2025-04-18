@@ -19,8 +19,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UpdateEventBase {
-    @Size(min = 20, max = 2000)
+public class EventUpdateDto {
+    @Size(min = 20, max = 2000, message = "аннотация 20 и меньше 2000")
     private String annotation;
 
     private Long category;

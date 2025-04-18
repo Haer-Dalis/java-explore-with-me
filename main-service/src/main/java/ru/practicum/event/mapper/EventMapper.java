@@ -5,9 +5,10 @@ import ru.practicum.category.mapper.CategoryMapper;
 import ru.practicum.category.model.Category;
 import ru.practicum.event.dto.EventDto;
 import ru.practicum.event.dto.EventShortDto;
-import ru.practicum.event.dto.NewEventDto;
+import ru.practicum.event.dto.EventNewDto;
 import ru.practicum.event.dto.State;
-import ru.practicum.event.dto.UpdateEventDto;
+import ru.practicum.event.dto.EventUpdateDto;
+import ru.practicum.event.dto.StateAction;
 import ru.practicum.event.model.Event;
 import ru.practicum.location.mapper.LocationMapper;
 import ru.practicum.location.model.Location;
@@ -55,37 +56,92 @@ public class EventMapper {
                 .build();
     }
 
-    public static Event toEvent(User initiator, Category category, NewEventDto newEventDto, Location location) {
+    public static Event toEvent(User initiator, Category category, EventNewDto eventNewDto, Location location) {
+        Boolean paid = Boolean.FALSE;
+        if (eventNewDto.getPaid() != null) {
+            paid = eventNewDto.getPaid();
+        }
+
+        int participantLimit = 0;
+        if (eventNewDto.getParticipantLimit() != null) {
+            participantLimit = eventNewDto.getParticipantLimit();
+        }
+
+        Boolean requestModeration = Boolean.TRUE;
+        if (eventNewDto.getRequestModeration() != null) {
+            requestModeration = eventNewDto.getRequestModeration();
+        }
+
         return Event.builder()
-                .annotation(newEventDto.getAnnotation())
+                .annotation(eventNewDto.getAnnotation())
                 .category(category)
-                .description(newEventDto.getDescription())
+                .description(eventNewDto.getDescription())
                 .createdOn(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
-                .eventDate(newEventDto.getEventDate())
+                .eventDate(eventNewDto.getEventDate())
                 .location(location)
-                .paid(newEventDto.getPaid() == null ? Boolean.FALSE : newEventDto.getPaid())
-                .participantLimit(newEventDto.getParticipantLimit() == null ? 0 : newEventDto.getParticipantLimit())
-                .requestModeration(newEventDto.getRequestModeration() == null ? Boolean.TRUE : newEventDto.getRequestModeration())
-                .title(newEventDto.getTitle())
+                .paid(paid)
+                .participantLimit(participantLimit)
+                .requestModeration(requestModeration)
+                .title(eventNewDto.getTitle())
                 .confirmedRequests(0)
                 .initiator(initiator)
                 .views(0L)
                 .build();
     }
 
-    public static Event toUpdatedEvent(UpdateEventDto updateRequest, Category newCategory, Event oldEvent) {
+    public static Event toUpdatedEvent(EventUpdateDto updateRequest, Category newCategory, Event oldEvent) {
+        String annotation = oldEvent.getAnnotation();
+        if (updateRequest.getAnnotation() != null) {
+            annotation = updateRequest.getAnnotation();
+        }
+
+        String description = oldEvent.getDescription();
+        if (updateRequest.getDescription() != null) {
+            description = updateRequest.getDescription();
+        }
+
+        LocalDateTime eventDate = oldEvent.getEventDate();
+        if (updateRequest.getEventDate() != null) {
+            eventDate = updateRequest.getEventDate();
+        }
+
+        Location location = oldEvent.getLocation();
+        if (updateRequest.getLocation() != null) {
+            location = updateRequest.getLocation();
+        }
+
+        Boolean paid = oldEvent.getPaid();
+        if (updateRequest.getPaid() != null) {
+            paid = updateRequest.getPaid();
+        }
+
+        Integer participantLimit = oldEvent.getParticipantLimit();
+        if (updateRequest.getParticipantLimit() != null) {
+            participantLimit = updateRequest.getParticipantLimit();
+        }
+
+        Boolean requestModeration = oldEvent.getRequestModeration();
+        if (updateRequest.getRequestModeration() != null) {
+            requestModeration = updateRequest.getRequestModeration();
+        }
+
+        String title = oldEvent.getTitle();
+        if (updateRequest.getTitle() != null) {
+            title = updateRequest.getTitle();
+        }
+
         Event updatedEvent = Event.builder()
                 .id(oldEvent.getId())
-                .annotation(updateRequest.getAnnotation() != null ? updateRequest.getAnnotation() : oldEvent.getAnnotation())
+                .annotation(annotation)
                 .category(newCategory)
-                .description(updateRequest.getDescription() != null ? updateRequest.getDescription() : oldEvent.getDescription())
+                .description(description)
                 .createdOn(oldEvent.getCreatedOn())
-                .eventDate(updateRequest.getEventDate() != null ? updateRequest.getEventDate() : oldEvent.getEventDate())
-                .location(updateRequest.getLocation() != null ? updateRequest.getLocation() : oldEvent.getLocation())
-                .paid(updateRequest.getPaid() != null ? updateRequest.getPaid() : oldEvent.getPaid())
-                .participantLimit(updateRequest.getParticipantLimit() != null ? updateRequest.getParticipantLimit() : oldEvent.getParticipantLimit())
-                .requestModeration(updateRequest.getRequestModeration() != null ? updateRequest.getRequestModeration() : oldEvent.getRequestModeration())
-                .title(updateRequest.getTitle() != null ? updateRequest.getTitle() : oldEvent.getTitle())
+                .eventDate(eventDate)
+                .location(location)
+                .paid(paid)
+                .participantLimit(participantLimit)
+                .requestModeration(requestModeration)
+                .title(title)
                 .confirmedRequests(oldEvent.getConfirmedRequests())
                 .initiator(oldEvent.getInitiator())
                 .views(oldEvent.getViews())
@@ -93,15 +149,16 @@ public class EventMapper {
                 .build();
 
         if (updateRequest.getStateAction() != null) {
-            switch (updateRequest.getStateAction()) {
-                case SEND_TO_REVIEW -> updatedEvent.setState(State.PENDING);
-                case REJECT_EVENT, CANCEL_REVIEW -> updatedEvent.setState(State.CANCELED);
-                case PUBLISH_EVENT -> {
-                    updatedEvent.setState(State.PUBLISHED);
-                    updatedEvent.setPublishedOn(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
-                }
+            if (updateRequest.getStateAction() == StateAction.SEND_TO_REVIEW) {
+                updatedEvent.setState(State.PENDING);
+            } else if (updateRequest.getStateAction() == StateAction.REJECT_EVENT || updateRequest.getStateAction() == StateAction.CANCEL_REVIEW) {
+                updatedEvent.setState(State.CANCELED);
+            } else if (updateRequest.getStateAction() == StateAction.PUBLISH_EVENT) {
+                updatedEvent.setState(State.PUBLISHED);
+                updatedEvent.setPublishedOn(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
             }
         }
+
         return updatedEvent;
     }
 }

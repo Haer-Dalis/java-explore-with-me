@@ -39,8 +39,10 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "annotation", nullable = false, length = 2000)
     private String annotation;
 
+    @Column(name = "description", nullable = false, length = 7000)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -64,6 +66,7 @@ public class Event {
     @Column(name = "published_on")
     private LocalDateTime publishedOn;
 
+    @Column(name = "paid")
     private Boolean paid;
 
     @Column(name = "participant_limit")
@@ -75,11 +78,14 @@ public class Event {
     @Column(name = "confirmed_requests")
     private Integer confirmedRequests;
 
+    @Column(name = "title", nullable = false, length = 120)
     private String title;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "state", nullable = false, length = 63)
     private State state;
 
+    @Column(name = "views")
     private Long views;
 
     @ManyToMany(mappedBy = "events")

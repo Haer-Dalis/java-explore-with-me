@@ -1,6 +1,6 @@
 package ru.practicum.event.dto;
 
-public enum SortType {
+public enum SortCriteria {
     EVENT_DATE,
     VIEWS
 }

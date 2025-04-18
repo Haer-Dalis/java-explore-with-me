@@ -20,8 +20,7 @@ public class PublicCategoryServiceImpl implements PublicCategoryService {
 
     @Override
     public List<CategoryDto> getCategories(Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(from, size);
-        return categoryRepository.findAll(pageable).stream()
+        return accessRange(from, size).stream()
                 .map(CategoryMapper::toCategoryDto)
                 .collect(Collectors.toList());
     }
@@ -31,5 +30,10 @@ public class PublicCategoryServiceImpl implements PublicCategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(String.format("Категория не обнаружена с id = %d", id)));
         return CategoryMapper.toCategoryDto(category);
+    }
+
+    private List<Category> accessRange(Integer from, Integer size) {
+        Pageable pageable = PageRequest.of(from, size);
+        return categoryRepository.findAll(pageable).getContent();
     }
 }
